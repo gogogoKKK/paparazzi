@@ -51,12 +51,12 @@ uint8_t verbose = 0;
 #define printf_debug(...)    if(verbose > 0) fprintf (stderr, __VA_ARGS__)
 
 /** NatNet defaults */
-char *natnet_addr               = "255.255.255.255";
-char *natnet_multicast_addr     = "239.255.42.99";
+char *natnet_addr               = "10.10.10.1";
+char *natnet_multicast_addr     = "10.10.10.25";
 uint16_t natnet_cmd_port        = 1510;
 uint16_t natnet_data_port       = 1511;
 uint8_t natnet_major            = 2;
-uint8_t natnet_minor            = 9;
+uint8_t natnet_minor            = 7;
 
 /** Logging */
 FILE *fp;
@@ -211,12 +211,19 @@ void natnet_parse(unsigned char *in)
       memcpy(&old_rigid, &rigidBodies[j], sizeof(struct RigidBody));
 
       memcpy(&rigidBodies[j].id, ptr, 4); ptr += 4;
-      memcpy(&rigidBodies[j].y, ptr, 4); ptr += 4;   //x --> Y
-      memcpy(&rigidBodies[j].z, ptr, 4); ptr += 4;   //y --> Z
-      memcpy(&rigidBodies[j].x, ptr, 4); ptr += 4;   //z --> X
+//      memcpy(&rigidBodies[j].y, ptr, 4); ptr += 4;   //x --> Y
+//      memcpy(&rigidBodies[j].z, ptr, 4); ptr += 4;   //y --> Z
+//      memcpy(&rigidBodies[j].x, ptr, 4); ptr += 4;   //z --> X
+//      memcpy(&rigidBodies[j].qx, ptr, 4); ptr += 4;  //qx --> QX
+//      memcpy(&rigidBodies[j].qz, ptr, 4); ptr += 4;  //qy --> QZ
+//      memcpy(&rigidBodies[j].qy, ptr, 4); ptr += 4;  //qz --> QY
+//      memcpy(&rigidBodies[j].qw, ptr, 4); ptr += 4;  //qw --> QW
+      memcpy(&rigidBodies[j].x, ptr, 4); ptr += 4;   //x --> Y
+      memcpy(&rigidBodies[j].y, ptr, 4); ptr += 4;   //y --> Z
+      memcpy(&rigidBodies[j].z, ptr, 4); ptr += 4;   //z --> X
       memcpy(&rigidBodies[j].qx, ptr, 4); ptr += 4;  //qx --> QX
-      memcpy(&rigidBodies[j].qz, ptr, 4); ptr += 4;  //qy --> QZ
-      memcpy(&rigidBodies[j].qy, ptr, 4); ptr += 4;  //qz --> QY
+      memcpy(&rigidBodies[j].qy, ptr, 4); ptr += 4;  //qy --> QY
+      memcpy(&rigidBodies[j].qz, ptr, 4); ptr += 4;  //qz --> QZ
       memcpy(&rigidBodies[j].qw, ptr, 4); ptr += 4;  //qw --> QW
       printf_natnet("ID (%d) : %d\n", j, rigidBodies[j].id);
       printf_natnet("pos: [%3.2f,%3.2f,%3.2f]\n", rigidBodies[j].x, rigidBodies[j].y, rigidBodies[j].z);
@@ -559,8 +566,9 @@ gboolean timeout_transmit_callback(gpointer data)
     double_eulers_of_quat(&orient_eulers, &orient);
 
     // Calculate the heading by adding the Natnet offset angle and normalizing it
-    double heading = -orient_eulers.psi + 90.0 / 57.6 -
-                     tracking_offset_angle; //the optitrack axes are 90 degrees rotated wrt ENU
+//    double heading = -orient_eulers.psi + 90.0 / 57.6 -
+//                     tracking_offset_angle; //the optitrack axes are 90 degrees rotated wrt ENU
+    double heading = -orient_eulers.psi;
     NormRadAngle(heading);
 
     printf_debug("[%d -> %d]Samples: %d\t%d\t\tTiming: %3.3f latency\n", rigidBodies[i].id,
@@ -922,7 +930,7 @@ int main(int argc, char **argv)
   tracking_lla.lat = RadOfDeg(51.9906340);
   tracking_lla.lon = RadOfDeg(4.3767889);
   tracking_lla.alt = 45.103;
-  tracking_offset_angle = 33.0 / 57.6;
+  tracking_offset_angle = 0.;
   ltp_def_from_lla_d(&tracking_ltp, &tracking_lla);
 
   // Parse the options from cmdline
