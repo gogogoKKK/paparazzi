@@ -138,6 +138,26 @@ static void send_att_indi(struct transport_tx *trans, struct link_device *dev)
                                    &g2_disp);
 }
 
+//static void send_att_ref(struct transport_tx *trans, struct link_device *dev)
+//{
+//  pprz_msg_send_STAB_ATTITUDE_REF_INT(trans, dev, AC_ID,
+//                                        &stab_att_sp_euler.phi,
+//                                        &stab_att_sp_euler.theta,
+//                                        &stab_att_sp_euler.psi,
+//
+//                                        &stab_att_sp_euler.phi,
+//                                        &stab_att_sp_euler.theta,
+//                                        &stab_att_sp_euler.psi,
+//
+//                                        &stab_att_sp_euler.phi,
+//                                        &stab_att_sp_euler.theta,
+//                                        &stab_att_sp_euler.psi,
+//
+//                                        &stab_att_sp_euler.phi,
+//                                        &stab_att_sp_euler.theta,
+//                                        &stab_att_sp_euler.psi);
+//}
+
 static void send_ahrs_ref_quat(struct transport_tx *trans, struct link_device *dev)
 {
   struct Int32Quat *quat = stateGetNedToBodyQuat_i();
@@ -160,6 +180,7 @@ void stabilization_indi_init(void)
 
 #if PERIODIC_TELEMETRY
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_STAB_ATTITUDE_INDI, send_att_indi);
+//  register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_STAB_ATTITUDE_REF_INT, send_att_ref);
   register_periodic_telemetry(DefaultPeriodic, PPRZ_MSG_ID_AHRS_REF_QUAT, send_ahrs_ref_quat);
 #endif
 }

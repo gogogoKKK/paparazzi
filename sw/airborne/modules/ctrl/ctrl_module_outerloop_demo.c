@@ -31,7 +31,7 @@
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude.h"
 #include "firmwares/rotorcraft/stabilization/stabilization_attitude_rc_setpoint.h"
 #include "autopilot.h"
-
+#include "subsystems/actuators/motor_mixing.h"
 // Own Variables
 
 struct ctrl_module_demo_struct {
@@ -74,12 +74,19 @@ void guidance_h_module_run(bool in_flight)
 {
   // YOUR NEW HORIZONTAL OUTERLOOP CONTROLLER GOES HERE
   // ctrl.cmd = CallMyNewHorizontalOuterloopControl(ctrl);
-  float roll = 0.0;
+//  float roll = 10.0/57.3;
+  float roll = 0.;
   float pitch = 0.0;
+  float yaw = 0.;
+  motor_mixing.commands[MOTOR_FRONT_LEFT] = 100;
+  motor_mixing.commands[MOTOR_FRONT_RIGHT] = 100;
+  motor_mixing.commands[MOTOR_BACK_RIGHT] = 100;
+  motor_mixing.commands[MOTOR_BACK_LEFT] = 100;
 
   ctrl.cmd.phi = ANGLE_BFP_OF_REAL(roll);
   ctrl.cmd.theta = ANGLE_BFP_OF_REAL(pitch);
-
+  ctrl.cmd.psi = ANGLE_BFP_OF_REAL(yaw);
+  stabilization_cmd[COMMAND_THRUST] = 1000;
   stabilization_attitude_set_rpy_setpoint_i(&(ctrl.cmd));
   stabilization_attitude_run(in_flight);
 

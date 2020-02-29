@@ -71,18 +71,19 @@ void vertical_ctrl_module_init(void)
 
 void vertical_ctrl_module_run(bool in_flight)
 {
-  if (!in_flight) {
-    // Reset integrators
-    v_ctrl.sum_err = 0;
-    stabilization_cmd[COMMAND_THRUST] = 0;
-  } else {
-    int32_t nominal_throttle = 0.5 * MAX_PPRZ;
-    float err = v_ctrl.setpoint - v_ctrl.agl;
-    int32_t thrust = nominal_throttle + v_ctrl.pgain * err + v_ctrl.igain * v_ctrl.sum_err;
-    Bound(thrust, 0, MAX_PPRZ);
-    stabilization_cmd[COMMAND_THRUST] = thrust;
-    v_ctrl.sum_err += err;
-  }
+    stabilization_cmd[COMMAND_THRUST] = 2500;
+//  if (!in_flight) {
+//    // Reset integrators
+//    v_ctrl.sum_err = 0;
+//    stabilization_cmd[COMMAND_THRUST] = 0;
+//  } else {
+//    int32_t nominal_throttle = 0.5 * MAX_PPRZ;
+//    float err = v_ctrl.setpoint - v_ctrl.agl;
+//    int32_t thrust = nominal_throttle + v_ctrl.pgain * err + v_ctrl.igain * v_ctrl.sum_err;
+//    Bound(thrust, 0, MAX_PPRZ);
+//    stabilization_cmd[COMMAND_THRUST] = thrust;
+//    v_ctrl.sum_err += err;
+//  }
 }
 
 static void vertical_ctrl_agl_cb(__attribute__((unused)) uint8_t sender_id, __attribute__((unused)) uint32_t stamp, float distance)

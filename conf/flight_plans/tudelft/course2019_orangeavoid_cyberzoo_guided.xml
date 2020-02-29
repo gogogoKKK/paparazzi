@@ -112,12 +112,12 @@ inline void setGuided(void){
     </block>
     <block key="g" name="START" strip_button="Go" strip_icon="lookfore.png">
       <call_once fun="setGuided()"/>
-      <stay wp="STDBY"/>
+<!--      <stay wp="STDBY"/>-->
     </block>
     <block name="STOP">
       <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <call_once fun="setNav()"/>
-      <stay wp="STDBY"/>
+<!--      <stay wp="STDBY"/>-->
     </block>
     <block key="l" name="land here" strip_button="Land Here" strip_icon="land-right.png">
       <call_once fun="setNav()"/>

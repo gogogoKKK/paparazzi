@@ -128,6 +128,7 @@ void imu_bebop_event(void)
     imu_scale_accel(&imu);
     AbiSendMsgIMU_GYRO_INT32(IMU_BOARD_ID, now_ts, &imu.gyro);
     AbiSendMsgIMU_ACCEL_INT32(IMU_BOARD_ID, now_ts, &imu.accel);
+    AbiSendMsgIMU_INT32(IMU_INT32_ID, now_ts, &imu.gyro, &imu.accel);
   }
 
   /* AKM8963 event task */

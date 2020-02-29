@@ -1,0 +1,16 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="bebop2_guided">
+  <doc>
+    <description>guided mode for bebop2</description>
+  </doc>
+  <header>
+    <file name="bebop2_guided.h"/>
+  </header>
+  <init fun="bebop2_guided_init()"/>
+  <periodic fun="bebop2_guided_periodic()" freq="50"/>
+  <makefile>
+    <file name="bebop2_guided.c"/>
+  </makefile>
+</module>
+

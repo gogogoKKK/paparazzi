@@ -455,4 +455,8 @@
 #define JOYSTICK_ID 1
 #endif
 
+#ifndef IMU_INT32_ID
+#define IMU_INT32_ID 1
+#endif
+
 #endif /* ABI_SENDER_IDS_H */

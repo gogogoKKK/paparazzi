@@ -1,0 +1,30 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="save_imu" dir="save_imu">
+  <doc>
+    <description>save imu data to a file</description>
+    <define name="IMU_SAVE_PATH" value="/data/ftp/internal_000/save_imu_image" description="Location to save imu and images"/>
+  </doc>
+
+  <settings>
+    <dl_settings>
+      <dl_settings name="save_imu">
+        <dl_setting var="save_imu_record" min="0" step="1" max="1" shortname="save_imu"
+                    module="save_imu/save_imu">
+<!--          <strip_button name="Start video capture" icon="dcstart.png" value="1" group="cv"/>-->
+<!--          <strip_button name="Stop video capture" icon="dcstop.png" value="0" group="cv"/>-->
+        </dl_setting>
+      </dl_settings>
+    </dl_settings>
+  </settings>
+
+  <header>
+    <file name="save_imu.h"/>
+  </header>
+  <init fun="save_imu_init()"/>
+<!--  <periodic fun="save_imu_periodic()" freq="100" autorun="TRUE"/>-->
+  <makefile>
+    <file name="save_imu.c"/>
+  </makefile>
+</module>
+

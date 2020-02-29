@@ -204,6 +204,13 @@
       <field name="throttle"  type="int16_t">Throttle input in pprz_t [0;9600] or [-9600;9600] (for vertical speed control for instance)</field>
     </message>
 
+    <message name="IMU_INT32" id="30">
+      <field name="stamp" type="uint32_t" unit="us"/>
+      <field name="gyro" type="struct Int32Rates *"/>
+      <field name="accel" type="struct Int32Vect3 *"/>
+<!--      <field name="mag" type="struct Int32Vect3 *"/>-->
+    </message>
+
   </msg_class>
 
 </protocol>
