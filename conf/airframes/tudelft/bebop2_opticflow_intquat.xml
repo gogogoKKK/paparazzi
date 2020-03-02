@@ -36,6 +36,7 @@
 
     <module name="bebop_cam"/>
     <module name="bebop2_guided"/>
+    <module name="bebop2_v_guided"/>
 <!--    <module name="pose_history"/>-->
 
 <!--    <module name="cv_opticflow">-->

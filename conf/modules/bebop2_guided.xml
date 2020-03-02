@@ -4,6 +4,18 @@
   <doc>
     <description>guided mode for bebop2</description>
   </doc>
+  <settings>
+    <dl_settings>
+      <dl_settings name="bebop2_guided">
+        <dl_setting var="trajectory_guided_mode" min="0" step="1" max="4" shortname="trajectory"
+                    module="bebop2_guided/bebop2_guided">
+          <!--          <strip_button name="Start video capture" icon="dcstart.png" value="1" group="cv"/>-->
+          <!--          <strip_button name="Stop video capture" icon="dcstop.png" value="0" group="cv"/>-->
+        </dl_setting>
+      </dl_settings>
+    </dl_settings>
+  </settings>
+
   <header>
     <file name="bebop2_guided.h"/>
   </header>

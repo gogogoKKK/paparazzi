@@ -23,7 +23,6 @@
  * guided mode for bebop2
  */
 #include <time.h>
-//#include <sys/time.h>
 #include "modules/bebop2_guided/bebop2_guided.h"
 #include "firmwares/rotorcraft/guidance/guidance_h.h"
 #include "generated/airframe.h"
@@ -37,7 +36,7 @@ enum navigation_state_t {
 };
 
 const float twopi = 2.*3.1415926;
-int trajectory_guided_mode = 0;
+int trajectory_guided_mode = 4;
 float sp_pos_x = 0., sp_pos_y = 0., sp_vel_x = 0., sp_vel_y = 0.;
 void bebop2_guided_init(void) {}
 void bebop2_guided_periodic(void){
@@ -70,11 +69,24 @@ void bebop2_guided_periodic(void){
         sp_pos_y = A*cos(twopi*freq*dt);
         sp_vel_x = A*twopi*freq*cos(twopi*freq*dt);
         sp_vel_y = -A*twopi*freq*sin(twopi*freq*dt);
+    }else if (trajectory_guided_mode == 3){
+        sp_pos_y = 0.;
+        sp_pos_x = 0.;
+        sp_vel_y = 0.;
+        sp_vel_x = 0.;
+    }else{
+        sp_pos_y = 0.;
+        sp_pos_x = 0.;
+        sp_vel_y = 0.;
+        sp_vel_x = 0.;
     }
 //    printf("guided %d %d %f dt: %f pos: %f vel: %f\n", now.tv_sec, now.tv_usec, time_now, dt, pos, vel);
 
     guidance_h_set_guided_pos(sp_pos_x, sp_pos_y);
     guidance_h_set_guided_vel(sp_vel_x, sp_vel_y);
+
+
+
 }
 
 

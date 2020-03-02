@@ -53,7 +53,7 @@ void bebop2_v_guided_periodic(void) {
     float dt = time_now - timestart;
     float freq = 0.2, A = 0.3;
 //    if (trajectory_guided_mode == 0){
-    sp_pos_z = A*sin(twopi*freq*dt)+0.8;
+    sp_pos_z = A*sin(twopi*freq*dt)-0.8;
 //    sp_vel_z = A*twopi*freq*cos(twopi*freq*dt);
 //    }
     guidance_v_set_guided_z(sp_pos_z);
