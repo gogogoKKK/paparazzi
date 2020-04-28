@@ -26,7 +26,8 @@
 #include "modules/bebop2_guided/bebop2_guided.h"
 #include "firmwares/rotorcraft/guidance/guidance_h.h"
 #include "generated/airframe.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 double timestart = -1.;
 enum navigation_state_t {
     LINE_X,
@@ -36,9 +37,50 @@ enum navigation_state_t {
 };
 
 const float twopi = 2.*3.1415926;
-int trajectory_guided_mode = 4;
+int trajectory_guided_mode = 3;
 float sp_pos_x = 0., sp_pos_y = 0., sp_vel_x = 0., sp_vel_y = 0.;
-void bebop2_guided_init(void) {}
+#define MAX_N 50
+float rand_sp_pos_x[MAX_N], rand_sp_pos_y[MAX_N], rand_sp_pos_t[MAX_N];
+void bebop2_guided_init(void) {
+    time_t t;
+    srand((unsigned) time(&t));
+    float range = 0.7;
+    for (int i = 0; i<MAX_N; i++){
+        rand_sp_pos_x[i] = 2*range*((double)rand())/RAND_MAX-range;
+        rand_sp_pos_y[i] = 2*range*((double)rand())/RAND_MAX-range;
+//        printf("rand_sp_pos: %f %f\n", rand_sp_pos_x[i], rand_sp_pos_y[i]);
+    }
+    float sp_v = 1.5;
+    rand_sp_pos_t[0] = 0.;
+    for (int i = 0; i<MAX_N-1; i++){
+        float dx = rand_sp_pos_x[i+1] - rand_sp_pos_x[i];
+        float dy = rand_sp_pos_y[i+1] - rand_sp_pos_y[i];
+        float s = sqrt(dx*dx+dy*dy);
+        rand_sp_pos_t[i+1] = rand_sp_pos_t[i]+s/sp_v;
+    }
+}
+
+
+double findMod(double a, double b)
+{
+    double mod;
+    // Handling negative values
+    if (a < 0)
+        mod = -a;
+    else
+        mod =  a;
+    if (b < 0)
+        b = -b;
+    // Finding mod by repeated subtraction
+    while (mod >= b)
+        mod = mod - b;
+    // Sign of result typically depends
+    // on sign of a.
+    if (a < 0)
+        return -mod;
+    return mod;
+}
+
 void bebop2_guided_periodic(void){
     if (guidance_h.mode != GUIDANCE_H_MODE_GUIDED) {
         return;
@@ -53,7 +95,7 @@ void bebop2_guided_periodic(void){
     }
     float dt = time_now - timestart;
 
-    float freq = 0.2, A = 0.5;
+    float freq = 0.3, A = 0.7;
     if (trajectory_guided_mode == 0){
         sp_pos_x = A*sin(twopi*freq*dt);
         sp_pos_y = 0.;
@@ -65,17 +107,28 @@ void bebop2_guided_periodic(void){
         sp_vel_y = A*twopi*freq*cos(twopi*freq*dt);
         sp_vel_x = 0.;
     }else if (trajectory_guided_mode == 2){
-        sp_pos_x = A*sin(twopi*freq*dt);
-        sp_pos_y = A*cos(twopi*freq*dt);
+        sp_pos_x = A*sin(twopi*freq*dt)+0.;
+        sp_pos_y = A*cos(twopi*freq*dt)+0.;
         sp_vel_x = A*twopi*freq*cos(twopi*freq*dt);
         sp_vel_y = -A*twopi*freq*sin(twopi*freq*dt);
     }else if (trajectory_guided_mode == 3){
-        sp_pos_y = 0.;
-        sp_pos_x = 0.;
+        dt = findMod(dt, rand_sp_pos_t[MAX_N-1]);
+        for (int i = 0; i<MAX_N-1; i++){
+            if(dt >= rand_sp_pos_t[i] && dt < rand_sp_pos_t[i+1]){
+                sp_pos_x = rand_sp_pos_x[i];
+                sp_pos_y = rand_sp_pos_y[i];
+                break;
+            }
+            else{
+                sp_pos_x = 0.;
+                sp_pos_y = 0.;
+            }
+        }
+//        printf("dt: %f sp_pos: %f %f\n", dt, sp_pos_x, sp_pos_y);
         sp_vel_y = 0.;
         sp_vel_x = 0.;
     }else{
-        sp_pos_y = 0.;
+        sp_pos_y = 0.5;
         sp_pos_x = 0.;
         sp_vel_y = 0.;
         sp_vel_x = 0.;
@@ -83,7 +136,7 @@ void bebop2_guided_periodic(void){
 //    printf("guided %d %d %f dt: %f pos: %f vel: %f\n", now.tv_sec, now.tv_usec, time_now, dt, pos, vel);
 
     guidance_h_set_guided_pos(sp_pos_x, sp_pos_y);
-    guidance_h_set_guided_vel(sp_vel_x, sp_vel_y);
+//    guidance_h_set_guided_vel(sp_vel_x, sp_vel_y);
 
 
 

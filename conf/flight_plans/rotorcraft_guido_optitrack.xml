@@ -19,7 +19,7 @@ autopilot_static_set_mode(AP_MODE_GUIDED);
   <waypoints>
     <waypoint name="HOME" x="0.0" y="0.0"/>
     <waypoint name="CLIMB" x="0" y="-0."/>
-    <waypoint name="GOAL" x=".0" y=".0"/>
+    <waypoint name="GOAL" x=".0" y="0.3"/>
     <waypoint name="STDBY" x="-0." y="-0."/>
     <waypoint name="TD" x="0." y="-0."/>
     <waypoint lat="51.9906340" lon="4.3767889" name="p1"/>
@@ -59,14 +59,13 @@ autopilot_static_set_mode(AP_MODE_GUIDED);
 <!--      <stay climb="nav_climb_vspeed" vmode="climb" wp="CLIMB"/>-->
 <!--    </block>-->
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-      <stay wp="p1" alt="0.4" />
+      <stay wp="HOME" alt="0.4" />
     </block>
     <block key="g" name="START">
       <call_once fun="setGuided()"/>
-      <stay wp="HOME"/>
+      <stay wp="GOAL"/>
     </block>
     <block name="STOP">
-      <call_once fun="NavSetWaypointHere(WP_STDBY)"/>
       <call_once fun="setNav()"/>
       <stay wp="STDBY"/>
     </block>

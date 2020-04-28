@@ -27,6 +27,7 @@
 #define SAVE_IMU_H
 #include <stdbool.h>
 extern bool save_imu_record;
+extern int save_img_jump;
 extern void save_imu_init(void);
 
 // extern void save_imu_register(void);

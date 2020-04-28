@@ -59,6 +59,7 @@ bool save_imu_record = false;
 bool save_imu_record_start = false;
 bool save_img_record = false;
 bool save_imu_record_lowpass = false;
+int save_img_jump = 2;
 FILE *fpimu = NULL;
 FILE *fpimu_lowpass = NULL;
 static char save_imu_dir[256];
@@ -158,7 +159,8 @@ void gyro_cb(uint8_t sender_id __attribute__((unused)),
 struct image_t *save_video_capture(struct image_t *img)
 {
     // If take_shot bool is set, save the image
-    if (get_save_img_record()){
+    static unsigned int imgcount = 0;
+    if (get_save_img_record() && imgcount++%save_img_jump == 0){
         video_capture_save(img);
     }
     // No modification to image

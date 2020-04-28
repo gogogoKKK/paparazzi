@@ -173,12 +173,12 @@
     <define name="REF_MAX_RDOT" value="RadOfDeg(8000.)"/>
 
     <!-- feedback -->
-    <define name="PHI_PGAIN" value="1200"/>
-    <define name="PHI_DGAIN" value="400"/>
+    <define name="PHI_PGAIN" value="1500"/>
+    <define name="PHI_DGAIN" value="300"/>
     <define name="PHI_IGAIN" value="0"/>
 
-    <define name="THETA_PGAIN" value="1200"/>
-    <define name="THETA_DGAIN" value="400"/>
+    <define name="THETA_PGAIN" value="1500"/>
+    <define name="THETA_DGAIN" value="300"/>
     <define name="THETA_IGAIN" value="0"/>
 
     <define name="PSI_PGAIN" value="8000"/>
@@ -206,11 +206,11 @@
   </section>
 
   <section name="GUIDANCE_H" prefix="GUIDANCE_H_">
-    <define name="REF_MAX_SPEED" value="2" unit="m/s"/>
+    <define name="REF_MAX_SPEED" value="4" unit="m/s"/>
     <define name="MAX_BANK" value="35" unit="deg"/>
-    <define name="PGAIN" value="120"/> <!-- GPS: 120 no GPS: 0--> 
-    <define name="DGAIN" value="330"/> <!-- GPS: 80 no GPS: 302-->
-    <define name="IGAIN" value="5"/> <!-- GPS: 30 no GPS: 0-->
+    <define name="PGAIN" value="400"/> <!-- GPS: 120 no GPS: 0-->
+    <define name="DGAIN" value="130"/> <!-- GPS: 80 no GPS: 302-->
+    <define name="IGAIN" value="10"/> <!-- GPS: 30 no GPS: 0-->
   </section>
 
   <section name="NAVIGATION" prefix="NAV_">
