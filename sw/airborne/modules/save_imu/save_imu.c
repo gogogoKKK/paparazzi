@@ -160,7 +160,7 @@ struct image_t *save_video_capture(struct image_t *img)
 {
     // If take_shot bool is set, save the image
     static unsigned int imgcount = 0;
-    if (get_save_img_record() && imgcount++%save_img_jump == 0){
+    if (get_save_img_record() /*&& imgcount++%save_img_jump == 0*/){
         video_capture_save(img);
     }
     // No modification to image

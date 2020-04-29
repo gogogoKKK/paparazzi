@@ -53,9 +53,14 @@
 <!--    </module>-->
     <module name="save_imu">
     <define name="IMU_SAVE_PATH" value="/data/ftp/internal_000/imu_images"/>
-    <define name="VIDEO_CAPTURE_CAMERA" value="bottom_camera"/>
-    <!-- <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/> -->
-  </module>
+<!--    <define name="VIDEO_CAPTURE_CAMERA" value="bottom_camera"/>-->
+     <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/>
+     <define name="MT9F002_OUTPUT_HEIGHT" value="240"/>
+      <define name="MT9F002_OUTPUT_WIDTH" value="240"/>
+<!--      <define name="MT9F002_TARGET_EXPOSURE" value="20"/>-->
+<!--      <define name="MT9F002_TARGET_FPS" value="30"/>-->
+      <define name="VIDEO_CAPTURE_FPS" value="25"/>
+    </module>
     <module name="ctrl_module_outerloop_demo.xml"/>
 <!--    <module name="save_imu.xml"/>-->
 <!--    <module name="optical_flow_landing.xml"/>-->
