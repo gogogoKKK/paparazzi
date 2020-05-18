@@ -147,7 +147,7 @@ void gyro_cb(uint8_t sender_id __attribute__((unused)),
         ACCELS_FLOAT_OF_BFP(accel_f, *accel);
         struct FloatRMat* pRMat = stateGetNedToBodyRMat_f();
 //        printf("%.6f,%.6f,%.6f\n", pRMat->m[2], pRMat->m[5], pRMat->m[8]);
-        fprintf(fpimu, "%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
+        fprintf(fpimu, "%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
                 accel_f.x, accel_f.y, accel_f.z,
                 gyro_f.p, gyro_f.q, gyro_f.r,
                 pRMat->m[2], pRMat->m[5], pRMat->m[8]);
