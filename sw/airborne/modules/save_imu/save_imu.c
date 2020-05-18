@@ -44,7 +44,7 @@
 #include "modules/computer_vision/cv.h"
 
 #include "lib/encoding/jpeg.h"
-
+#include "state.h"
 // Note: this define is set automatically when the video_exif module is included,
 // and exposes functions to write data in the image exif headers.
 #if JPEG_WITH_EXIF_HEADER
@@ -145,9 +145,18 @@ void gyro_cb(uint8_t sender_id __attribute__((unused)),
         RATES_FLOAT_OF_BFP(gyro_f, *gyro);
         struct FloatVect3 accel_f;
         ACCELS_FLOAT_OF_BFP(accel_f, *accel);
-        fprintf(fpimu, "%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
+        struct FloatRMat* pRMat = stateGetNedToBodyRMat_f();
+//        printf("%.6f,%.6f,%.6f\n", pRMat->m[2], pRMat->m[5], pRMat->m[8]);
+        fprintf(fpimu, "%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
                 accel_f.x, accel_f.y, accel_f.z,
-                gyro_f.p, gyro_f.q, gyro_f.r);
+                gyro_f.p, gyro_f.q, gyro_f.r,
+                pRMat->m[2], pRMat->m[5], pRMat->m[8]);
+//        fprintf(fpimu, "%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
+//                accel_f.x, accel_f.y, accel_f.z,
+//                gyro_f.p, gyro_f.q, gyro_f.r,
+//                pRMat->m[0], pRMat->m[1], pRMat->m[2],
+//                pRMat->m[3], pRMat->m[4], pRMat->m[5],
+//                pRMat->m[6], pRMat->m[7], pRMat->m[8]);
     }else if (get_save_img_record()){
         set_save_img_record(false);
         save_imu_record_lowpass = false;
