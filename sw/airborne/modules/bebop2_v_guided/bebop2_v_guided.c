@@ -86,9 +86,9 @@ void bebop2_v_guided_periodic(void) {
         timestart = time_now;
     }
     float dt = time_now - timestart;
-    const float freq = 0.2, A = 0.7;
+    const float freq = 0.2, A = 0.5;
     if (trajectory_vguided_mode == 0){
-        sp_pos_z = A*sin(twopi*freq*dt)-.8;
+        sp_pos_z = A*sin(twopi*freq*dt)-0.9;
 //    sp_vel_z = A*twopi*freq*cos(twopi*freq*dt);
     }else if (trajectory_vguided_mode == 1){
         dt = findModz(dt, rand_sp_zpos_t[MAX_NZ-1]);
@@ -102,6 +102,8 @@ void bebop2_v_guided_periodic(void) {
             }
         }
 //        printf("dt: %f z: %f\n", dt, sp_pos_z);
+    }else{
+        sp_pos_z = -0.7;
     }
     guidance_v_set_guided_z(sp_pos_z);
 //    guidance_v_set_guided_vz(sp_vel_v);

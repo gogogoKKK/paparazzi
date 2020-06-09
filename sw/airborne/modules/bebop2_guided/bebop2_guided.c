@@ -37,7 +37,7 @@ enum navigation_state_t {
 };
 
 const float twopi = 2.*3.1415926;
-int trajectory_guided_mode = 3;
+int trajectory_guided_mode = 0;
 float sp_pos_x = 0., sp_pos_y = 0., sp_vel_x = 0., sp_vel_y = 0.;
 #define MAX_N 50
 float rand_sp_pos_x[MAX_N], rand_sp_pos_y[MAX_N], rand_sp_pos_t[MAX_N];
@@ -95,7 +95,7 @@ void bebop2_guided_periodic(void){
     }
     float dt = time_now - timestart;
 
-    float freq = 0.3, A = 0.7;
+    float freq = 0.2, A = 0.5;
     if (trajectory_guided_mode == 0){
         sp_pos_x = A*sin(twopi*freq*dt);
         sp_pos_y = 0.;

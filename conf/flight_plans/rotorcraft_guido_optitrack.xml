@@ -59,7 +59,7 @@ autopilot_static_set_mode(AP_MODE_GUIDED);
 <!--      <stay climb="nav_climb_vspeed" vmode="climb" wp="CLIMB"/>-->
 <!--    </block>-->
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-      <stay wp="HOME" alt="0.4" />
+      <stay wp="HOME" alt="0.8" />
     </block>
     <block key="g" name="START">
       <call_once fun="setGuided()"/>

@@ -42,7 +42,10 @@
 
 #include "modules/computer_vision/video_capture.h"
 #include "modules/computer_vision/cv.h"
-
+#include <fcntl.h>   /* File Control Definitions           */
+#include <termios.h> /* POSIX Terminal Control Definitions */
+#include <unistd.h>  /* UNIX Standard Definitions 	   */
+#include <errno.h>   /* ERROR Number Definitions           */
 #include "lib/encoding/jpeg.h"
 #include "state.h"
 // Note: this define is set automatically when the video_exif module is included,
@@ -52,6 +55,7 @@
 #endif
 
 static abi_event imu_ev;
+static abi_event jevois_ev;
 static abi_event imu_lowpass_ev;
 pthread_mutex_t mutex ;
 
@@ -69,6 +73,10 @@ static void gyro_cb(uint8_t sender_id __attribute__((unused)),
                     uint32_t stamp __attribute__((unused)),
                     struct Int32Rates *gyro,
                     struct Int32Vect3 *accel);
+
+static void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
+        uint8_t nb, int16_t * coord, uint16_t * dim,
+        struct FloatQuat quat, char * extra);
 
 void save_imu_lowpass(uint8_t __attribute__((unused)) sender_id,
                       uint32_t stamp __attribute__((unused)),
@@ -94,12 +102,80 @@ bool set_save_img_record(bool record_img){
     pthread_mutex_unlock(&mutex);
 }
 
+void set_serial(){
+    // Open the serial port. Change device path as needed (currently set to an standard FTDI USB-UART cable type device)
+    int serial_port = open("/dev/ttyUSB0", O_RDWR);
 
+    // Create new termios struc, we call it 'tty' for convention
+    struct termios tty;
+    memset(&tty, 0, sizeof tty);
+
+    // Read in existing settings, and handle any error
+    if(tcgetattr(serial_port, &tty) != 0) {
+        printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+    }
+
+    tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
+    tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
+    tty.c_cflag |= CS8; // 8 bits per byte (most common)
+    tty.c_cflag &= ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
+    tty.c_cflag |= CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+
+    tty.c_lflag &= ~ICANON;
+    tty.c_lflag &= ~ECHO; // Disable echo
+    tty.c_lflag &= ~ECHOE; // Disable erasure
+    tty.c_lflag &= ~ECHONL; // Disable new-line echo
+    tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
+    tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
+
+    tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
+    tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
+    // tty.c_oflag &= ~OXTABS; // Prevent conversion of tabs to spaces (NOT PRESENT ON LINUX)
+    // tty.c_oflag &= ~ONOEOT; // Prevent removal of C-d chars (0x004) in output (NOT PRESENT ON LINUX)
+
+    tty.c_cc[VTIME] = 10;    // Wait for up to 1s (10 deciseconds), returning as soon as any data is received.
+    tty.c_cc[VMIN] = 0;
+
+    // Set in/out baud rate to be 9600
+    cfsetispeed(&tty, B115200);
+    cfsetospeed(&tty, B115200);
+
+    // Save tty settings, also checking for error
+    if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
+        printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
+    }
+
+    // Write to serial port
+    unsigned char msg[] = { 'H', 'e', 'l', 'l', 'o', '\r' };
+    write(serial_port, "Hello, world!", sizeof(msg));
+
+    // Allocate memory for read buffer, set size according to your needs
+    char read_buf [256];
+    memset(&read_buf, '\0', sizeof(read_buf));
+
+    // Read bytes. The behaviour of read() (e.g. does it block?,
+    // how long does it block for?) depends on the configuration
+    // settings above, specifically VMIN and VTIME
+    int num_bytes = read(serial_port, &read_buf, sizeof(read_buf));
+
+    // n is the number of bytes read. n may be 0 if no bytes were received, and can also be -1 to signal an error.
+    if (num_bytes < 0) {
+        printf("Error reading: %s", strerror(errno));
+    }
+
+    // Here we assume we received ASCII data, but you might be sending raw bytes (in that case, don't try and
+    // print it to the screen like this!)
+    printf("Read %i bytes. Received message: %s", num_bytes, read_buf);
+    close(serial_port);
+}
 
 void save_imu_init(void) {
     AbiBindMsgIMU_INT32(ABI_BROADCAST, &imu_ev, gyro_cb);
+    AbiBindMsgJEVOIS_MSG(ABI_BROADCAST, &imu_ev, jevois_msg_event);
 //    AbiBindMsgIMU_LOWPASSED(ABI_BROADCAST, &imu_lowpass_ev, save_imu_lowpass);
     cv_add_to_device(&VIDEO_CAPTURE_CAMERA, save_video_capture, VIDEO_CAPTURE_FPS);
+//    set_serial();
 }
 
 //void save_imu_periodic() {
@@ -145,12 +221,15 @@ void gyro_cb(uint8_t sender_id __attribute__((unused)),
         RATES_FLOAT_OF_BFP(gyro_f, *gyro);
         struct FloatVect3 accel_f;
         ACCELS_FLOAT_OF_BFP(accel_f, *accel);
-        struct FloatRMat* pRMat = stateGetNedToBodyRMat_f();
-//        printf("%.6f,%.6f,%.6f\n", pRMat->m[2], pRMat->m[5], pRMat->m[8]);
-        fprintf(fpimu, "%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
+        fprintf(fpimu, "%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
                 accel_f.x, accel_f.y, accel_f.z,
-                gyro_f.p, gyro_f.q, gyro_f.r,
-                pRMat->m[2], pRMat->m[5], pRMat->m[8]);
+                gyro_f.p, gyro_f.q, gyro_f.r);
+//        struct FloatRMat* pRMat = stateGetNedToBodyRMat_f();
+////        printf("%.6f,%.6f,%.6f\n", pRMat->m[2], pRMat->m[5], pRMat->m[8]);
+//        fprintf(fpimu, "%ld,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
+//                accel_f.x, accel_f.y, accel_f.z,
+//                gyro_f.p, gyro_f.q, gyro_f.r,
+//                pRMat->m[2], pRMat->m[5], pRMat->m[8]);
 //        fprintf(fpimu, "%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", stamp,
 //                accel_f.x, accel_f.y, accel_f.z,
 //                gyro_f.p, gyro_f.q, gyro_f.r,
@@ -162,7 +241,16 @@ void gyro_cb(uint8_t sender_id __attribute__((unused)),
         save_imu_record_lowpass = false;
         fclose(fpimu);
     }
+}
 
+void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
+                      uint8_t nb, int16_t * coord, uint16_t * dim,
+                      struct FloatQuat quat, char * extra){
+    printf("nb: %d", nb);
+    for (int i = 0; i<nb; i++){
+        printf(" coord %d: %d", i, coord[i]);
+    }
+    printf("\n");
 }
 
 struct image_t *save_video_capture(struct image_t *img)
@@ -199,8 +287,9 @@ void video_capture_save(struct image_t *img)
         printf("[save_imu] Could not write shot %s.\n", save_name);
         return;
     }
+//    printf(save_name);
     // Save it to the file and close it
-    fwrite(img_jpeg.buf, sizeof(uint8_t), img_jpeg.buf_size, fp);
+//    fwrite(img_jpeg.buf, sizeof(uint8_t), img_jpeg.buf_size, fp);
     fclose(fp);
 #endif
     // Free image
@@ -217,6 +306,8 @@ void mkdir(char* dir){
         }
     }
 }
+
+
 
 //void save_imu_lowpass(uint8_t __attribute__((unused)) sender_id,
 //                uint32_t stamp __attribute__((unused)),

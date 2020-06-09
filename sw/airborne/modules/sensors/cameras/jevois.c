@@ -425,9 +425,10 @@ void jevois_setmapping(int number)
   jevois_stream(false);
   jevois_send_string("setmapping ");
   char s[4];
-#ifndef SITL
-  itoa(number, s, 10);
-#endif
+//#ifndef SITL
+//  itoa(number, s, 10);
+//#endif
+  sprintf(s, "%d", number);
   jevois_send_string(s);
   jevois_send_string("\r\n");
   jevois_stream(true);
