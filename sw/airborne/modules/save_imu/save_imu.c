@@ -172,7 +172,7 @@ void set_serial(){
 
 void save_imu_init(void) {
     AbiBindMsgIMU_INT32(ABI_BROADCAST, &imu_ev, gyro_cb);
-    AbiBindMsgJEVOIS_MSG(ABI_BROADCAST, &imu_ev, jevois_msg_event);
+    AbiBindMsgJEVOIS_MSG(CAM_JEVOIS_ID, &jevois_ev, jevois_msg_event);
 //    AbiBindMsgIMU_LOWPASSED(ABI_BROADCAST, &imu_lowpass_ev, save_imu_lowpass);
     cv_add_to_device(&VIDEO_CAPTURE_CAMERA, save_video_capture, VIDEO_CAPTURE_FPS);
 //    set_serial();
@@ -246,11 +246,20 @@ void gyro_cb(uint8_t sender_id __attribute__((unused)),
 void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
                       uint8_t nb, int16_t * coord, uint16_t * dim,
                       struct FloatQuat quat, char * extra){
-    printf("nb: %d", nb);
-    for (int i = 0; i<nb; i++){
-        printf(" coord %d: %d", i, coord[i]);
+
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    double time_now = (double)now.tv_sec + (double)now.tv_usec*1e-6;
+//    int timeint = time_now*1e3;
+//    printf("guided %d %d %d %f\n", now.tv_sec, now.tv_usec, time_now_ms, time_now);
+    printf("[receive] sender_id: %f %u type %u nb: %u\n", time_now, sender_id, type, nb);
+    if (type == 23){
+        for (int i = 0; i<nb; i++){
+            printf(" coord %d, %d\n", coord[2*i], coord[2*i+1]);
+        }
     }
-    printf("\n");
+
+//    printf("\n");
 }
 
 struct image_t *save_video_capture(struct image_t *img)

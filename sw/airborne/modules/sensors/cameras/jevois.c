@@ -47,7 +47,7 @@ bool jevois_stream_setting;
 struct jevois_msg_t {
   uint8_t type;
   char id[JEVOIS_MAX_LEN];
-  uint8_t nb;
+  uint8_t nb, coorddim;
   int16_t coord[JEVOIS_MAX_COORD];
   uint16_t dim[3];
   struct FloatQuat quat;
@@ -188,6 +188,7 @@ static void jevois_parse(struct jevois_t *jv, char c)
           jv->state = JV_COORD;
           jv->msg.type = JEVOIS_MSG_T1;
           jv->msg.nb = 1;
+//          printf("JEVOIS_MSG_T1 %u nb: %u\n", JEVOIS_MSG_T1, jv->msg.nb);
         } else if (jv->buf[0] == 'N' && jv->buf[1] == '1') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_N1;
@@ -211,7 +212,8 @@ static void jevois_parse(struct jevois_t *jv, char c)
         } else if (jv->buf[0] == 'F' && jv->buf[1] == '2') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_F2;
-          jv->msg.nb = 0;
+          jv->msg.nb = 2;
+          jv->msg.coorddim = 2;
         } else if (jv->buf[0] == 'T' && jv->buf[1] == '3') {
           jv->state = JV_COORD;
           jv->msg.type = JEVOIS_MSG_T3;
@@ -228,6 +230,7 @@ static void jevois_parse(struct jevois_t *jv, char c)
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_F3;
           jv->msg.nb = 0;
+          jv->msg.coorddim = 3;
         } else {
           jv->state = JV_SYNC; // error
         }
@@ -268,7 +271,7 @@ static void jevois_parse(struct jevois_t *jv, char c)
       if (JEVOIS_CHECK_DELIM(c)) {
         jv->buf[jv->idx] = '\0'; // end string
         jv->msg.coord[jv->n++] = (int16_t)atoi(jv->buf); // store value
-        if (jv->n == jv->msg.nb) {
+        if (jv->n == jv->msg.nb*jv->msg.coorddim) {
           // got all coordinates, go to next state
           jv->n = 0; // reset number of received elements
           jv->idx = 0; // reset index
@@ -376,6 +379,7 @@ static void jevois_parse(struct jevois_t *jv, char c)
           jv->msg.dim,
           jv->msg.quat,
           jv->msg.extra);
+//      printf("[abi send] msg type: %u nb: %u\n", jv->msg.type, jv->msg.nb);
       // also send specific messages if needed
       jevois_send_message();
       jv->data_available = true;
