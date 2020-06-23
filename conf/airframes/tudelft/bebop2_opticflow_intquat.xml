@@ -34,9 +34,9 @@
       <define name="FILE_LOGGER_PATH" value="/data/ftp/internal_000"/>
     </module>
 
-    <module name="bebop_cam"/>
-    <module name="bebop2_guided"/>
-    <module name="bebop2_v_guided"/>
+<!--    <module name="bebop_cam"/>-->
+<!--    <module name="bebop2_guided"/>-->
+<!--    <module name="bebop2_v_guided"/>-->
     <module name="jevois">
       <define name="JEVOIS_SEND_MSG" value="TRUE" />
       <configure name="JEVOIS_UART" value="UART2" />
@@ -56,16 +56,16 @@
 <!--      &lt;!&ndash; <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/> &ndash;&gt;-->
 <!--      <define name="VIDEO_CAPTURE_PATH" value="/data/ftp/internal_000/images"/>-->
 <!--    </module>-->
-    <module name="save_imu">
-    <define name="IMU_SAVE_PATH" value="/data/ftp/internal_000/imu_images"/>
-<!--    <define name="VIDEO_CAPTURE_CAMERA" value="bottom_camera"/>-->
-     <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/>
-     <define name="MT9F002_OUTPUT_HEIGHT" value="480"/>
-      <define name="MT9F002_OUTPUT_WIDTH" value="640"/>
-<!--      <define name="MT9F002_TARGET_EXPOSURE" value="20"/>-->
-      <define name="MT9F002_TARGET_FPS" value="30"/>
-<!--      <define name="VIDEO_CAPTURE_FPS" value="50"/>-->
-    </module>
+<!--    <module name="save_imu">-->
+<!--    <define name="IMU_SAVE_PATH" value="/data/ftp/internal_000/imu_images"/>-->
+<!--&lt;!&ndash;    <define name="VIDEO_CAPTURE_CAMERA" value="bottom_camera"/>&ndash;&gt;-->
+<!--     <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/>-->
+<!--     <define name="MT9F002_OUTPUT_HEIGHT" value="480"/>-->
+<!--      <define name="MT9F002_OUTPUT_WIDTH" value="640"/>-->
+<!--&lt;!&ndash;      <define name="MT9F002_TARGET_EXPOSURE" value="20"/>&ndash;&gt;-->
+<!--      <define name="MT9F002_TARGET_FPS" value="30"/>-->
+<!--&lt;!&ndash;      <define name="VIDEO_CAPTURE_FPS" value="50"/>&ndash;&gt;-->
+<!--    </module>-->
     <module name="ctrl_module_outerloop_demo.xml"/>
 <!--    <module name="save_imu.xml"/>-->
 <!--    <module name="optical_flow_landing.xml"/>-->

@@ -31,7 +31,7 @@
 #include <std.h>
 
 // Settings
-extern float comode_time;
+extern float ctrl_outerloop_kp, ctrl_outerloop_kv, ctrl_outerloop_kh, ctrl_outerloop_kvz;
 
 // Demo with own guidance_h
 #define GUIDANCE_H_MODE_MODULE_SETTING GUIDANCE_H_MODE_MODULE
