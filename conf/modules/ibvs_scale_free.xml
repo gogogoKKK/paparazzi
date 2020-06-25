@@ -1,0 +1,15 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="ibvs_scale_free">
+  <doc>
+    <description></description>
+  </doc>
+  <header>
+    <file name="ibvs_scale_free.h"/>
+  </header>
+  <init fun="ibvs_scale_free_init()"/>
+  <makefile>
+    <file name="ibvs_scale_free.c"/>
+  </makefile>
+</module>
+
