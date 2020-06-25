@@ -182,33 +182,40 @@ static void jevois_parse(struct jevois_t *jv, char c)
       break;
     case JV_TYPE:
       jv->buf[jv->idx++] = c; // fill buffer
+//      printf("%c\n", c);
       // parse type
       if (jv->idx > 2) { // msg type + white space
         if (jv->buf[0] == 'T' && jv->buf[1] == '1') {
           jv->state = JV_COORD;
           jv->msg.type = JEVOIS_MSG_T1;
           jv->msg.nb = 1;
+          jv->msg.coorddim = 1;
 //          printf("JEVOIS_MSG_T1 %u nb: %u\n", JEVOIS_MSG_T1, jv->msg.nb);
         } else if (jv->buf[0] == 'N' && jv->buf[1] == '1') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_N1;
           jv->msg.nb = 1;
+          jv->msg.coorddim = 1;
         } else if (jv->buf[0] == 'D' && jv->buf[1] == '1') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_D1;
           jv->msg.nb = 2;
+          jv->msg.coorddim = 1;
         } else if (jv->buf[0] == 'T' && jv->buf[1] == '2') {
           jv->state = JV_COORD;
           jv->msg.type = JEVOIS_MSG_T2;
           jv->msg.nb = 2;
+          jv->msg.coorddim = 2;
         } else if (jv->buf[0] == 'N' && jv->buf[1] == '2') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_N2;
           jv->msg.nb = 2;
+          jv->msg.coorddim = 2;
         } else if (jv->buf[0] == 'D' && jv->buf[1] == '2') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_D2;
           jv->msg.nb = 8;
+          jv->msg.coorddim = 2;
         } else if (jv->buf[0] == 'F' && jv->buf[1] == '2') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_F2;
@@ -218,14 +225,17 @@ static void jevois_parse(struct jevois_t *jv, char c)
           jv->state = JV_COORD;
           jv->msg.type = JEVOIS_MSG_T3;
           jv->msg.nb = 3;
+          jv->msg.coorddim = 3;
         } else if (jv->buf[0] == 'N' && jv->buf[1] == '3') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_N3;
           jv->msg.nb = 3;
+          jv->msg.coorddim = 3;
         } else if (jv->buf[0] == 'D' && jv->buf[1] == '3') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_D3;
           jv->msg.nb = 3;
+          jv->msg.coorddim = 3;
         } else if (jv->buf[0] == 'F' && jv->buf[1] == '3') {
           jv->state = JV_ID;
           jv->msg.type = JEVOIS_MSG_F3;
