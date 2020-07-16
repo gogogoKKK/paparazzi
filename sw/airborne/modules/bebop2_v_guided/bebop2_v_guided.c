@@ -30,7 +30,7 @@
 #include "generated/airframe.h"
 float sp_pos_z = 0.4f;
 float sp_vel_z = 0.f;
-int trajectory_vguided_mode = 0;
+int trajectory_vguided_mode = 2;
 #define MAX_NZ 20
 float rand_sp_pos_z[MAX_NZ], rand_sp_zpos_t[MAX_NZ];
 
@@ -103,7 +103,7 @@ void bebop2_v_guided_periodic(void) {
         }
 //        printf("dt: %f z: %f\n", dt, sp_pos_z);
     }else{
-        sp_pos_z = -0.7;
+        sp_pos_z = -0.5;
     }
     guidance_v_set_guided_z(sp_pos_z);
 //    guidance_v_set_guided_vz(sp_vel_v);

@@ -95,10 +95,10 @@ void bebop2_guided_periodic(void){
     }
     float dt = time_now - timestart;
 
-    float freq = 0.2, A = 0.5;
+    float freq = 0.1, A = 0.5;
     if (trajectory_guided_mode == 0){
         sp_pos_x = A*sin(twopi*freq*dt);
-        sp_pos_y = 0.;
+        sp_pos_y = 0.4;
         sp_vel_x = A*twopi*freq*cos(twopi*freq*dt);
         sp_vel_y = 0.;
     }else if (trajectory_guided_mode == 1){
