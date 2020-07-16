@@ -26,7 +26,14 @@
 #ifndef IBVS_SCALE_FREE_H
 #define IBVS_SCALE_FREE_H
 #include <std.h>
+#define GUIDANCE_H_MODE_MODULE_SETTING GUIDANCE_H_MODE_MODULE
 
+// But re-using an existing altitude-hold controller
+#define GUIDANCE_V_MODE_MODULE_SETTING GUIDANCE_V_MODE_HOVER
+extern float ctrl_outerloop_kp, ctrl_outerloop_kv, ctrl_outerloop_kh, ctrl_outerloop_kvz;
+extern float ibvs_h_k0, ibvs_h_k1, ibvs_v_k0, ibvs_v_k1;
+extern int jevois_start_status;
+extern bool use_ibvs;
 extern void ibvs_scale_free_init(void);
 extern void guidance_h_module_init(void);
 extern void guidance_h_module_enter(void);

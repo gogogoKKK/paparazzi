@@ -67,7 +67,9 @@
 <!--&lt;!&ndash;      <define name="VIDEO_CAPTURE_FPS" value="50"/>&ndash;&gt;-->
 <!--    </module>-->
 <!--    <module name="ctrl_module_outerloop_demo.xml"/>-->
-    <module name="ibvs_scale_free.xml"/>
+    <module name="ibvs_scale_free.xml">
+      <define name="IBVS_LOG_PATH" value="/data/ftp/internal_000/log"/>
+    </module>
 <!--    <module name="save_imu.xml"/>-->
 <!--    <module name="optical_flow_landing.xml"/>-->
 
@@ -82,7 +84,7 @@
     <axis name="PITCH" failsafe_value="0"/>
     <axis name="ROLL" failsafe_value="0"/>
     <axis name="YAW" failsafe_value="0"/>
-    <axis name="THRUST" failsafe_value="6000"/>
+    <axis name="THRUST" failsafe_value="7000"/>
   </commands>
 
   <servos driver="Default">
@@ -219,8 +221,8 @@
   <section name="GUIDANCE_H" prefix="GUIDANCE_H_">
     <define name="REF_MAX_SPEED" value="4" unit="m/s"/>
     <define name="MAX_BANK" value="35" unit="deg"/>
-    <define name="PGAIN" value="400"/> <!-- GPS: 120 no GPS: 0-->
-    <define name="DGAIN" value="130"/> <!-- GPS: 80 no GPS: 302-->
+    <define name="PGAIN" value="500"/> <!-- GPS: 120 no GPS: 0-->
+    <define name="DGAIN" value="240"/> <!-- GPS: 80 no GPS: 302-->
     <define name="IGAIN" value="10"/> <!-- GPS: 30 no GPS: 0-->
   </section>
 

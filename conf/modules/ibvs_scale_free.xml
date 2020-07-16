@@ -3,7 +3,26 @@
 <module name="ibvs_scale_free">
   <doc>
     <description></description>
+    <define name="IBVS_LOG_PATH" value="/data/ftp/internal_000/log/" description="Location to log"/>
   </doc>
+  <settings>
+    <dl_settings>
+      <dl_settings NAME="IBVS">
+        <dl_setting var="use_ibvs" min="0" step="1" max="1" module="ibvs_scale_free/ibvs_scale_free" shortname="use_ibvs"/>
+        <dl_setting var="ctrl_outerloop_kp" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="kp"/>
+        <dl_setting var="ctrl_outerloop_kv" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="kv"/>
+        <dl_setting var="ctrl_outerloop_kh" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="kh"/>
+        <dl_setting var="ctrl_outerloop_kvz" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="kvz"/>
+
+        <dl_setting var="ibvs_h_k0" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="h_k0"/>
+        <dl_setting var="ibvs_h_k1" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="h_k1"/>
+        <dl_setting var="ibvs_v_k0" min="0" step="0.1" max="10" module="ibvs_scale_free/ibvs_scale_free" shortname="v_k0"/>
+        <dl_setting var="ibvs_v_k1" min="0" step="0.001" max="1" module="ibvs_scale_free/ibvs_scale_free" shortname="v_k1"/>
+
+        <dl_setting var="jevois_start_status" min="0" step="1" max="1" module="ibvs_scale_free/ibvs_scale_free" shortname="jevois_status"/>
+      </dl_settings>
+    </dl_settings>
+  </settings>
   <header>
     <file name="ibvs_scale_free.h"/>
   </header>
