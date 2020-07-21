@@ -28,6 +28,7 @@
 #include "generated/airframe.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "modules/sensors/cameras/jevois.h"
 double timestart = -1.;
 enum navigation_state_t {
     LINE_X,
@@ -39,6 +40,9 @@ enum navigation_state_t {
 const float twopi = 2.*3.1415926;
 int trajectory_guided_mode = 0;
 float sp_pos_x = 0., sp_pos_y = 0., sp_vel_x = 0., sp_vel_y = 0.;
+
+int jevois_start_status = 0;
+bool jevois_send_start = false, jevois_send_stop = false;
 #define MAX_N 50
 float rand_sp_pos_x[MAX_N], rand_sp_pos_y[MAX_N], rand_sp_pos_t[MAX_N];
 void bebop2_guided_init(void) {
@@ -58,6 +62,24 @@ void bebop2_guided_init(void) {
         float s = sqrt(dx*dx+dy*dy);
         rand_sp_pos_t[i+1] = rand_sp_pos_t[i]+s/sp_v;
     }
+}
+
+void jevois_update_date(){
+    struct timeval tv;
+    struct tm *tm;
+    gettimeofday(&tv, NULL);
+    tm = localtime(&tv.tv_sec);
+    char buf[256];
+    sprintf(buf, "date %02d%02d%02d%02d00\n", tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min);
+//    LOG_INFO("%s", buf);
+    jevois_send_string(buf);
+//    if (fplog){
+//        fclose(fplog);
+//        fplog = NULL;
+//    }
+//    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+//            tm->tm_hour, tm->tm_min, tm->tm_sec);
+//    fplog = fopen(buf, "w");
 }
 
 
@@ -85,6 +107,21 @@ void bebop2_guided_periodic(void){
     if (guidance_h.mode != GUIDANCE_H_MODE_GUIDED) {
         return;
     }
+    if (jevois_start_status == 0){
+        if (jevois_send_stop){
+            jevois_send_string("stop\n");
+            jevois_send_stop = false;
+        }
+        jevois_send_start = true;
+    }else{
+        if (jevois_send_start){
+            jevois_update_date();
+            jevois_send_string("start\n");
+            jevois_send_start = false;
+        }
+        jevois_send_stop = true;
+    }
+
     struct timeval now;
     gettimeofday(&now, NULL);
     double time_now = (double)now.tv_sec + (double)now.tv_usec*1e-6;

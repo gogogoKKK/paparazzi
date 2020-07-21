@@ -202,8 +202,8 @@
   </section>
 
   <section name="GUIDANCE_V" prefix="GUIDANCE_V_">
-    <define name="HOVER_KP" value="430"/>
-    <define name="HOVER_KD" value="150"/>
+    <define name="HOVER_KP" value="600"/>
+    <define name="HOVER_KD" value="200"/>
     <define name="HOVER_KI" value="5"/>
     <define name="NOMINAL_HOVER_THROTTLE" value="0.65"/>
     <define name="ADAPT_THROTTLE_ENABLED" value="FALSE"/>
@@ -218,8 +218,8 @@
   <section name="GUIDANCE_H" prefix="GUIDANCE_H_">
     <define name="REF_MAX_SPEED" value="4" unit="m/s"/>
     <define name="MAX_BANK" value="35" unit="deg"/>
-    <define name="PGAIN" value="450"/> <!-- GPS: 120 no GPS: 0-->
-    <define name="DGAIN" value="200"/> <!-- GPS: 80 no GPS: 302-->
+    <define name="PGAIN" value="500"/> <!-- GPS: 120 no GPS: 0-->
+    <define name="DGAIN" value="400"/> <!-- GPS: 80 no GPS: 302-->
     <define name="IGAIN" value="10"/> <!-- GPS: 30 no GPS: 0-->
   </section>
 

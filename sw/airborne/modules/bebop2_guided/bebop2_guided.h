@@ -28,6 +28,7 @@
 #include "firmwares/rotorcraft/guidance/guidance_h_ref.h"
 #include "generated/airframe.h"
 extern int trajectory_guided_mode;
+extern int jevois_start_status;
 extern void bebop2_guided_init(void);
 extern void bebop2_guided_periodic(void);
 #endif

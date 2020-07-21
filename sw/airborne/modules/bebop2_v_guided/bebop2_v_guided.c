@@ -103,7 +103,7 @@ void bebop2_v_guided_periodic(void) {
         }
 //        printf("dt: %f z: %f\n", dt, sp_pos_z);
     }else{
-        sp_pos_z = -0.5;
+        sp_pos_z = -0.6;
     }
     guidance_v_set_guided_z(sp_pos_z);
 //    guidance_v_set_guided_vz(sp_vel_v);
