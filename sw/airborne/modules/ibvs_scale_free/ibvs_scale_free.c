@@ -107,6 +107,15 @@ void set_desired_force_ibvs(float Fx, float Fy, float Fz);
 
 void get_desired_force_ibvs(float *Fx, float *Fy, float *Fz);
 
+void ibvs_scale_free_jevois_status(bool activate){
+    if (activate){
+        jevois_update_date();
+        jevois_send_string("start\n");
+    }else{
+        jevois_send_string("stop\n");
+    }
+}
+
 void create_log_file(){
     struct timeval tv;
     struct tm *tm;
@@ -166,6 +175,7 @@ void guidance_h_module_run(bool in_flight)
     // YOUR NEW HORIZONTAL OUTERLOOP CONTROLLER GOES HERE
     // ctrl.cmd = CallMyNewHorizontalOuterloopControl(ctrl);
 //    struct FloatVect3 desired_force;
+    static unsigned int counter = 0;
     float Fx, Fy, Fz;
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -174,33 +184,6 @@ void guidance_h_module_run(bool in_flight)
     float pxned = stateGetPositionNed_f()->x;
     float pyned = stateGetPositionNed_f()->y;
     float pzned = stateGetPositionNed_f()->z;
-//    if (jevois_send_date){
-//        jevois_send_date = false;
-//        jevois_update_date();
-//    }
-    if (jevois_start_status == 0){
-        if (jevois_send_stop){
-            jevois_send_string("stop\n");
-            jevois_send_stop = false;
-        }
-        jevois_send_start = true;
-    }else{
-        if (jevois_send_start){
-            jevois_update_date();
-            jevois_send_string("start\n");
-            jevois_send_start = false;
-        }
-        jevois_send_stop = true;
-    }
-//    if (jevois_start_status == 1){
-//        jevois_start_status = 2;
-//        jevois_send_string("start\n");
-//        LOG_INFO("send start\n");
-//    }else if (jevois_start_status == 4){
-//        jevois_send_string("stop\n");
-//        LOG_INFO("send stop\n");
-//        jevois_start_status = 0;
-//    }
     if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.5 || fabs(pyned)>0.5){
         float vxned = stateGetSpeedNed_f()->x;
         float vyned = stateGetSpeedNed_f()->y;

@@ -39,6 +39,7 @@ extern void guidance_h_module_init(void);
 extern void guidance_h_module_enter(void);
 extern void guidance_h_module_read_rc(void);
 extern void guidance_h_module_run(bool in_flight);
+extern void ibvs_scale_free_jevois_status(bool activate);
 
 #endif
 
