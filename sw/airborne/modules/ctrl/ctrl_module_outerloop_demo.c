@@ -92,7 +92,7 @@ void guidance_h_module_run(bool in_flight)
     float vxrobot = cpsi*vxned+spsi*vyned;
     float vyrobot = -spsi*vxned+cpsi*vyned;
 
-    float sp_yaw = -RadOfDeg(90.), sp_h = -0.8;
+    float sp_yaw = -RadOfDeg(90.), sp_h = -1.;
 
 //    printf("inflight: %d pos: %f %f %f vel: %f %f %f yaw: %f\n", in_flight, pxned, pyned, pzned, vxned, vyned, vzned, yaw);
 

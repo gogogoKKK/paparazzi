@@ -46,19 +46,23 @@
 //#include <unistd.h>  /* UNIX Standard Definitions 	   */
 //#include <errno.h>   /* ERROR Number Definitions           */
 //#include "sw/airborne/math/pprz_algebra_float.h"
-#define LOG_INFO(format, args...) (printf("[INFO]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
+//#define LOG_INFO(format, args...) (printf("[INFO]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
 //#define LOG_INFO(format, args...) (fprintf(fplog, "[INFO]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
-//
+
+//#define LOG_INFO(format, args...) (printf("[INFO]-[%d]:" format, __LINE__, ##args))
+#define LOG_INFO(format, args...) (fprintf(fplog, "[INFO]-[%d]:" format, __LINE__, ##args))
+
+
 //#define Msg_Debug(format, args...) (printf("[DEBUG]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
 //
 //#define Msg_Warn(format, args...) (printf("[WARN]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
 //
 //#define Msg_Error(format, args...) (printf("[ERROR]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
 
-const float jevois_fx = 406.7542857f,
-        jevois_fy = 408.1222019f,
-        jevois_cx = 321.65766064f,
-        jevois_cy = 245.95284275f;
+const float jevois_fx = 398.71295455f,
+        jevois_fy = 398.35889573f,
+        jevois_cx = 316.9367208f,
+        jevois_cy = 252.27558958f;
 
 struct ctrl_module_demo_struct {
 // RC Inputs
@@ -74,12 +78,13 @@ static abi_event jevois_ev;
 float ctrl_outerloop_kp = 2., ctrl_outerloop_kv = 1., ctrl_outerloop_kh = 2., ctrl_outerloop_kvz = 1.;
 FILE *fplog = NULL;
 struct FloatVect3 desired_force_ibvs;
-float ibvs_h_k0 = .2, ibvs_h_k1 = 0.1, ibvs_v_k0 = 0.1, ibvs_v_k1 = .01;
+float ibvs_h_k0 = .2, ibvs_h_k1 = 0.1, ibvs_v_k0 = 0.2, ibvs_v_k1 = .1;
 int jevois_start_status = 0;
 const float hground = -0.1;
 const float mg = 6, Fhmax = 2., Fvmax = 9.;
-const float sp_yaw = -RadOfDeg(90.), sp_h = -0.7;
-const float maxdeg = RadOfDeg(15.), Fx_bais = -0.45, Fy_bais = -0.01;
+const float sp_yaw = -RadOfDeg(90.), sp_h = -1.;
+const float maxdeg = RadOfDeg(10.), Fx_bais = -0.45, Fy_bais = -0.01;
+const float sp_pos_x = -0.3, sp_pos_y = 0.;
 
 bool jevois_send_start = false, jevois_send_stop = false, jevois_send_date = true;
 
@@ -92,6 +97,8 @@ double last_ibvs_update_time = 0.;
 void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
                       uint8_t nb, int16_t * coord, uint16_t * dim,
                       struct FloatQuat quat, char * extra);
+
+void compute_desiredb();
 
 bool checkftdi();
 
@@ -108,6 +115,7 @@ void set_desired_force_ibvs(float Fx, float Fy, float Fz);
 void get_desired_force_ibvs(float *Fx, float *Fy, float *Fz);
 
 void ibvs_scale_free_jevois_status(bool activate){
+    jevois_start_status = activate;
     if (activate){
         jevois_update_date();
         jevois_send_string("start\n");
@@ -137,7 +145,7 @@ void jevois_update_date(){
     gettimeofday(&tv, NULL);
     tm = localtime(&tv.tv_sec);
     char buf[256];
-    sprintf(buf, "date %02d%02d%02d%02d00\n", tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min);
+    sprintf(buf, "date %02d%02d%02d%02d00\n", tm->tm_mon + 1, tm->tm_mday, tm->tm_hour-1, tm->tm_min);
     LOG_INFO("%s", buf);
     jevois_send_string(buf);
 
@@ -184,7 +192,7 @@ void guidance_h_module_run(bool in_flight)
     float pxned = stateGetPositionNed_f()->x;
     float pyned = stateGetPositionNed_f()->y;
     float pzned = stateGetPositionNed_f()->z;
-    if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.5 || fabs(pyned)>0.5){
+    if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.5 || fabs(pyned) > 0.5){
         float vxned = stateGetSpeedNed_f()->x;
         float vyned = stateGetSpeedNed_f()->y;
         float vzned = stateGetSpeedNed_f()->z;
@@ -193,9 +201,11 @@ void guidance_h_module_run(bool in_flight)
         float yaw = stateGetNedToBodyEulers_f()->psi;
         float cpsi = cos(yaw);
         float spsi = sin(yaw);
+        float err_pos_x = pxned - sp_pos_x;
+        float err_pos_y = pyned - sp_pos_y;
 
-        float pxrobot = cpsi*pxned + spsi*pyned;
-        float pyrobot = -spsi*pxned + cpsi*pyned;
+        float pxrobot = cpsi*err_pos_x + spsi*err_pos_y;
+        float pyrobot = -spsi*err_pos_x + cpsi*err_pos_y;
 
         float vxrobot = cpsi*vxned + spsi*vyned;
         float vyrobot = -spsi*vxned + cpsi*vyned;
@@ -203,17 +213,16 @@ void guidance_h_module_run(bool in_flight)
         Fx = (-pxrobot*ctrl_outerloop_kp - vxrobot*ctrl_outerloop_kv) + Fx_bais;
         Fy = (-pyrobot*ctrl_outerloop_kp - vyrobot*ctrl_outerloop_kv) + Fy_bais;
         Fz = (pzned - sp_h)*ctrl_outerloop_kh+(vzned)*ctrl_outerloop_kvz;
-//        LOG_INFO("use_ibvs: %d detection_status: %d pos: %f %f %f F: %f %f %f\n",
-//                use_ibvs, get_detection_status(), pxned, pyned, pzned, Fx, Fy, Fz);
+        if (counter++%10 == 0)
+            LOG_INFO("use_ibvs: %d detection_status: %d pos: %f %f %f F_security: %f %f %f\n",
+                use_ibvs, get_detection_status(), pxned, pyned, pzned, Fx, Fy, Fz);
 //        LOG_INFO("probot: %f %f\n", pxrobot, pyrobot);
     }
     else{
-
         get_desired_force_ibvs(&Fx, &Fy, &Fz);
         Fx += Fx_bais;
         Fy += Fy_bais;
 //        LOG_INFO("ibvs F: %f %f %f\n", Fx, Fy, Fz);
-
     }
     BoundAbs(Fz, mg);
     BoundAbs(Fx, Fhmax);
@@ -226,7 +235,10 @@ void guidance_h_module_run(bool in_flight)
     float pitch_cmd = atan2(-Fx, Fz);
     BoundAbs(roll_cmd, maxdeg);
     BoundAbs(pitch_cmd, maxdeg);
-//    LOG_INFO("dt: %f F: %f %f %f cmd: %f %f\n", dtime, Fx, Fy, Fz, DegOfRad(roll_cmd), DegOfRad(pitch_cmd));
+//    if (counter++ %10 == 0){
+//        LOG_INFO("pos: %f %f %f dt: %f F: %f %f %f cmd: %f %f\n", pxned, pyned, pzned,
+//                dtime, Fx, Fy, Fz, DegOfRad(roll_cmd), DegOfRad(pitch_cmd));
+//    }
     ctrl.cmd.phi = ANGLE_BFP_OF_REAL(roll_cmd);
     ctrl.cmd.theta = ANGLE_BFP_OF_REAL(pitch_cmd);
     ctrl.cmd.psi = ANGLE_BFP_OF_REAL(sp_yaw);
@@ -249,6 +261,7 @@ void mkdir(char* dir){
 
 bool compute_gt(struct FloatVect3 *n, struct FloatVect3 *vartheta){
     struct FloatRMat *Rmat = stateGetNedToBodyRMat_f();
+
     n->x = Rmat->m[2];
     n->y = Rmat->m[5];
     n->z = Rmat->m[8];
@@ -268,11 +281,9 @@ bool compute_gt(struct FloatVect3 *n, struct FloatVect3 *vartheta){
 }
 
 void compute_ibvs_F(struct FloatVect3 *imgcoord, struct FloatVect3 *normal, struct FloatVect3 *vartheta,
-        struct FloatVect3 *F){
-    struct FloatVect3 q, b, nu, desiredb;
+        struct FloatVect3 *F, struct FloatVect3 *desiredb){
+    struct FloatVect3 q, b, nu;
     FLOAT_VECT3_ZERO(q);
-    FLOAT_VECT3_ZERO(desiredb);
-    desiredb.z = 4.5;
     q.x = 0.;
     q.y = 0.;
     q.z = 0.;
@@ -305,13 +316,55 @@ void compute_ibvs_F(struct FloatVect3 *imgcoord, struct FloatVect3 *normal, stru
     nu.x = vartheta->x/beta;
     nu.y = vartheta->y/beta;
     nu.z = vartheta->z/beta;
-    F->x = ibvs_h_k0*(b.x - desiredb.x) - ibvs_h_k1*nu.x;
-    F->y = ibvs_h_k0*(b.y - desiredb.y) - ibvs_h_k1*nu.y;
-    F->z = ibvs_v_k0*(b.z - desiredb.z) - ibvs_v_k1*nu.z;
+    F->x = ibvs_h_k0*(b.x - desiredb->x) - ibvs_h_k1*nu.x;
+    F->y = ibvs_h_k0*(b.y - desiredb->y) - ibvs_h_k1*nu.y;
+    F->z = ibvs_v_k0*(b.z - desiredb->z) - ibvs_v_k1*nu.z;
     F->z = -F->z;
-    LOG_INFO("n: %f %f %f nu: %f %f %f beta: %f b: %f %f %f F: %f %f %f\n",
-             normal->x, normal->y, normal->z, nu.x, nu.y, nu.z,
-             beta, b.x, b.y, b.z, F->x, F->y, F->z);
+    LOG_INFO("beta: %f nu: %f %f %f b: %f %f %f desiredb_ibvs: %f %f %f F_ibvs: %f %f %f\n", beta,
+             nu.x, nu.y, nu.z,
+             b.x, b.y, b.z,
+             desiredb->x, desiredb->y, desiredb->z,
+             F->x, F->y, F->z);
+//    static unsigned int counter = 0;
+//    if (counter++%5 == 0)
+    {
+//        LOG_INFO("n: %f %f %f nu: %f %f %f beta: %f b: %f %f %f F: %f %f %f\n",
+//                 normal->x, normal->y, normal->z, nu.x, nu.y, nu.z,
+//                 beta, b.x, b.y, b.z, F->x, F->y, F->z);
+
+//        LOG_INFO("nu: %f %f %f beta: %f b: %f %f %f F: %f %f %f\n",
+//                 nu.x, nu.y, nu.z,
+//                 beta, b.x, b.y, b.z,
+//                 F->x, F->y, F->z);
+    }
+}
+
+void compute_desiredb(struct FloatVect3 *desiredbRotate){
+    struct FloatRMat R0, Rc0;
+    R0.m[0] = 0.;
+    R0.m[1] = -1.;
+    R0.m[2] = 0.;
+    R0.m[3] = 1.;
+    R0.m[4] = 0.;
+    R0.m[5] = 0.;
+    R0.m[6] = 0.;
+    R0.m[7] = 0.;
+    R0.m[8] = 1.;
+    struct FloatRMat *Rmat = stateGetNedToBodyRMat_f();
+    float_rmat_comp_inv(&Rc0, Rmat, &R0);
+    struct FloatVect3 desiredb;
+    desiredb.x = 0.;
+    desiredb.y = 0.;
+    desiredb.z = 7.;
+    float_rmat_vmult(desiredbRotate, &Rc0, &desiredb);
+//    LOG_INFO("Rmat: %f %f %f %f %f %f %f %f %f\n",
+//             Rc0.m[0], Rc0.m[1], Rc0.m[2],
+//             Rc0.m[3], Rc0.m[4], Rc0.m[5],
+//             Rc0.m[6], Rc0.m[7], Rc0.m[8]);
+//    LOG_INFO("Rmat: %f %f %f %f %f %f %f %f %f\n",
+//             Rmat->m[0], Rmat->m[1], Rmat->m[2],
+//             Rmat->m[3], Rmat->m[4], Rmat->m[5],
+//             Rmat->m[6], Rmat->m[7], Rmat->m[8]);
 }
 
 void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
@@ -326,23 +379,24 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
         gettimeofday(&now, NULL);
         double time_now = (double)now.tv_sec + (double)now.tv_usec*1e-6;
         struct FloatVect3 normal, vartheta;
-        bool gtsuccess = compute_gt(&normal, &vartheta);
-        if (gtsuccess){
-            set_last_ibvs_update_time(time_now);
-            struct FloatVect3 imgcoord[4], F;
-            for (int i = 0; i < nb; i++){
-                imgcoord[i].y = (coord[2*i]-jevois_cx)/jevois_fx;
-                imgcoord[i].x = -(coord[2*i+1]-jevois_cy)/jevois_fy;
-                imgcoord[i].z = 1.;
-            }
-            compute_ibvs_F(imgcoord, &normal, &vartheta, &F);
-            nodetection_count = 0;
-            set_detection_status(true);
-            set_desired_force_ibvs(F.x, F.y, F.z);
-        }else{
-            LOG_INFO("height too low\n");
-        }
+//        bool gtsuccess = compute_gt(&normal, &vartheta);
+//        if (gtsuccess){
+//            set_last_ibvs_update_time(time_now);
+//            struct FloatVect3 imgcoord[4], F;
+//            for (int i = 0; i < nb; i++){
+//                imgcoord[i].y = (coord[2*i]-jevois_cx)/jevois_fx;
+//                imgcoord[i].x = -(coord[2*i+1]-jevois_cy)/jevois_fy;
+//                imgcoord[i].z = 1.;
+//            }
+//            compute_ibvs_F(imgcoord, &normal, &vartheta, &F);
+//            nodetection_count = 0;
+//            set_detection_status(true);
+//            set_desired_force_ibvs(F.x, F.y, F.z);
+//        }else{
+//            LOG_INFO("height too low\n");
+//        }
     }else if (type == JEVOIS_MSG_F3) {
+        static unsigned counter = 0;
         struct timeval now;
         gettimeofday(&now, NULL);
         double time_now = (double)now.tv_sec + (double)now.tv_usec*1e-6;
@@ -350,12 +404,20 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
         bool gtsuccess = compute_gt(&normal_gt, &vartheta_gt);
         if (gtsuccess){
             set_last_ibvs_update_time(time_now);
-            struct FloatVect3 imgcoord[4], F;
+            struct FloatVect3 imgcoord[4], F, imgcoordAvg, desiredb_tag, desiredb;
+            imgcoordAvg.x = imgcoordAvg.y = imgcoordAvg.z = 0.;
             for (int i = 0; i < 4; i++){
                 imgcoord[i].y = (coord[3*i]-jevois_cx)/jevois_fx;
                 imgcoord[i].x = -(coord[3*i+1]-jevois_cy)/jevois_fy;
                 imgcoord[i].z = 1.;
+                imgcoordAvg.x += imgcoord[i].x;
+                imgcoordAvg.y += imgcoord[i].y;
+                imgcoordAvg.z += imgcoord[i].z;
             }
+            imgcoordAvg.x /= 4;
+            imgcoordAvg.y /= 4;
+            imgcoordAvg.z /= 4;
+
             struct FloatVect3 normal, vartheta;
             const float precision = 1000.f;
             normal.y = ((float)coord[3*4])/precision;
@@ -365,9 +427,33 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
             vartheta.y = ((float)coord[3*5])/precision;
             vartheta.x = -((float)coord[3*5+1])/precision;
             vartheta.z = ((float)coord[3*5+2])/precision;
-            LOG_INFO("n_gt: %f %f %f n_est: %f %f %f\n", normal_gt.x, normal_gt.y, normal_gt.z, normal.x, normal.y, normal.z);
-            LOG_INFO("vartheta_gt: %f %f %f vartheta_est: %f %f %f\n", vartheta_gt.x, vartheta_gt.y, vartheta_gt.z, vartheta.x, vartheta.y, vartheta.z);
-            compute_ibvs_F(imgcoord, &normal, &vartheta, &F);
+
+            desiredb_tag.y = ((float)coord[3*6])/precision;
+            desiredb_tag.x = -((float)coord[3*6+1])/precision;
+            desiredb_tag.z = ((float)coord[3*6+2])/precision;
+
+            compute_desiredb(&desiredb);
+//            desiredb.x = 0.;
+//            desiredb.y = 0.;
+//            desiredb.z = 5.;
+
+//            if (counter++ %5 == 0)
+            {
+                LOG_INFO("imgcoord: %f %f %f %f %f %f %f %f\n",
+                        imgcoord[0].x, imgcoord[0].y,
+                         imgcoord[1].x, imgcoord[1].y,
+                         imgcoord[2].x, imgcoord[2].y,
+                         imgcoord[3].x, imgcoord[3].y);
+                LOG_INFO("n_gt: %f %f %f n_est: %f %f %f\n",
+                        normal_gt.x, normal_gt.y, normal_gt.z, normal.x, normal.y, normal.z);
+                LOG_INFO("vartheta_gt: %f %f %f vartheta_est: %f %f %f\n",
+                        vartheta_gt.x, vartheta_gt.y, vartheta_gt.z, vartheta.x, vartheta.y, vartheta.z);
+                LOG_INFO("desiredb: %f %f %f desiredb_tag: %f %f %f\n",
+                        desiredb.x, desiredb.y, desiredb.z, desiredb_tag.x, desiredb_tag.y, desiredb_tag.z);
+//                LOG_INFO("imgcoordAvg: %f %f %f desiredb: %f %f %f\n", imgcoordAvg.x, imgcoordAvg.y, imgcoordAvg.z, desiredb.x, desiredb.y, desiredb.z);
+            }
+            compute_ibvs_F(imgcoord, &normal, &vartheta, &F, &desiredb_tag);
+//            compute_ibvs_F(imgcoord, &normal_gt, &vartheta_gt, &F, &desiredb);
             nodetection_count = 0;
             set_detection_status(true);
             set_desired_force_ibvs(F.x, F.y, F.z);
