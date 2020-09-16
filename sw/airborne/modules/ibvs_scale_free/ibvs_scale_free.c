@@ -41,24 +41,12 @@
 #ifndef IBVS_LOG_PATH
 #define IBVS_LOG_PATH /data/video/images
 #endif
-//#include <fcntl.h>   /* File Control Definitions           */
-//#include <termios.h> /* POSIX Terminal Control Definitions */
-//#include <unistd.h>  /* UNIX Standard Definitions 	   */
-//#include <errno.h>   /* ERROR Number Definitions           */
 //#include "sw/airborne/math/pprz_algebra_float.h"
 //#define LOG_INFO(format, args...) (printf("[INFO]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
 //#define LOG_INFO(format, args...) (fprintf(fplog, "[INFO]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
 
 //#define LOG_INFO(format, args...) (printf("[INFO]-[%d]:" format, __LINE__, ##args))
 #define LOG_INFO(format, args...) (fprintf(fplog, "[INFO]-[%d]:" format, __LINE__, ##args))
-
-
-//#define Msg_Debug(format, args...) (printf("[DEBUG]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
-//
-//#define Msg_Warn(format, args...) (printf("[WARN]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
-//
-//#define Msg_Error(format, args...) (printf("[ERROR]-[%s]-[%s]-[%d]:" format, __FILE__, __FUNCTION__ , __LINE__, ##args))
-
 const float jevois_fx = 398.71295455f,
         jevois_fy = 398.35889573f,
         jevois_cx = 316.9367208f,
@@ -76,15 +64,16 @@ struct ctrl_module_demo_struct {
 static abi_event jevois_ev;
 //#define LOG_PATH /data
 float ctrl_outerloop_kp = 2., ctrl_outerloop_kv = 1., ctrl_outerloop_kh = 2., ctrl_outerloop_kvz = 1.;
-FILE *fplog = NULL;
+FILE *fplog = NULL, *fpibvs_out = NULL;
 struct FloatVect3 desired_force_ibvs;
-float ibvs_h_k0 = .2, ibvs_h_k1 = 0.1, ibvs_v_k0 = 0.2, ibvs_v_k1 = .1;
+float ibvs_hx_k0 = .2, ibvs_hx_k1 = 0.15, ibvs_hy_k0 = 0.2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
+//float ibvs_hx_k0 = .2, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = .2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
 int jevois_start_status = 0;
 const float hground = -0.1;
-const float mg = 6, Fhmax = 2., Fvmax = 9.;
-const float sp_yaw = -RadOfDeg(90.), sp_h = -1.;
-const float maxdeg = RadOfDeg(10.), Fx_bais = -0.45, Fy_bais = -0.01;
-const float sp_pos_x = -0.3, sp_pos_y = 0.;
+const float mg = 6.07, Fhmax = 2., Fvmax = 9.;
+const float sp_yaw = -RadOfDeg(90.), sp_h = -1.2;
+const float maxdeg = RadOfDeg(10.), Fx_bais = -0., Fy_bais = -0.0, pitch_cmd_bias = 0.082, roll_cmd_bias = -0.0;
+const float sp_pos_x = -0.3, sp_pos_y = 0.;//pitch_cmd_bias = 0.082,
 
 bool jevois_send_start = false, jevois_send_stop = false, jevois_send_date = true;
 
@@ -114,6 +103,14 @@ void set_desired_force_ibvs(float Fx, float Fy, float Fz);
 
 void get_desired_force_ibvs(float *Fx, float *Fy, float *Fz);
 
+void HeadingWorldForce2Att(float Fx, float Fy, float Fz,
+                           float *roll, float *pitch,
+                           float *U);
+
+void BodyForce2Att(float Fx, float Fy, float Fz,
+                   float *roll, float *pitch,
+                   float *U);
+
 void ibvs_scale_free_jevois_status(bool activate){
     jevois_start_status = activate;
     if (activate){
@@ -133,7 +130,28 @@ void create_log_file(){
     sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
             tm->tm_hour, tm->tm_min, tm->tm_sec);
     fplog = fopen(buf, "w");
+
+    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d_out.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    fpibvs_out = fopen(buf, "w");
 }
+
+void create_ibvs_out_file(){
+    if (fpibvs_out){
+        fclose(fpibvs_out);
+        fpibvs_out = NULL;
+    }
+    struct timeval tv;
+    struct tm *tm;
+    gettimeofday(&tv, NULL);
+    tm = localtime(&tv.tv_sec);
+    char buf[256];
+    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d_out.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    fpibvs_out = fopen(buf, "w");
+}
+
+
 void ibvs_scale_free_init(void){
     AbiBindMsgJEVOIS_MSG(CAM_JEVOIS_ID, &jevois_ev, jevois_msg_event);
     create_log_file();
@@ -156,6 +174,15 @@ void jevois_update_date(){
     sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
             tm->tm_hour, tm->tm_min, tm->tm_sec);
     fplog = fopen(buf, "w");
+
+    if (fpibvs_out){
+        fclose(fpibvs_out);
+        fpibvs_out = NULL;
+    }
+
+    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d_out.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    fpibvs_out = fopen(buf, "w");
 }
 // Call our controller
 // Implement own Horizontal loops
@@ -187,11 +214,16 @@ void guidance_h_module_run(bool in_flight)
     float Fx, Fy, Fz;
     struct timeval now;
     gettimeofday(&now, NULL);
+
     double time_now = (double)now.tv_sec + (double)now.tv_usec*1e-6;
     double dtime = fabs(time_now - get_last_ibvs_update_time());
     float pxned = stateGetPositionNed_f()->x;
     float pyned = stateGetPositionNed_f()->y;
     float pzned = stateGetPositionNed_f()->z;
+
+    float roll_cmd = 0.;
+    float pitch_cmd = 0.;
+    float thrust_cmd = 0.;
     if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.5 || fabs(pyned) > 0.5){
         float vxned = stateGetSpeedNed_f()->x;
         float vyned = stateGetSpeedNed_f()->y;
@@ -212,37 +244,50 @@ void guidance_h_module_run(bool in_flight)
 //    printf("inflight: %d pos: %f %f %f vel: %f %f %f yaw: %f\n", in_flight, pxned, pyned, pzned, vxned, vyned, vzned, yaw);
         Fx = (-pxrobot*ctrl_outerloop_kp - vxrobot*ctrl_outerloop_kv) + Fx_bais;
         Fy = (-pyrobot*ctrl_outerloop_kp - vyrobot*ctrl_outerloop_kv) + Fy_bais;
-        Fz = (pzned - sp_h)*ctrl_outerloop_kh+(vzned)*ctrl_outerloop_kvz;
-        if (counter++%10 == 0)
-            LOG_INFO("use_ibvs: %d detection_status: %d pos: %f %f %f F_security: %f %f %f\n",
-                use_ibvs, get_detection_status(), pxned, pyned, pzned, Fx, Fy, Fz);
-//        LOG_INFO("probot: %f %f\n", pxrobot, pyrobot);
+//        Fz = (pzned - sp_h)*ctrl_outerloop_kh + (vzned)*ctrl_outerloop_kvz;
+        Fz = (sp_h - pzned)*ctrl_outerloop_kh - (vzned)*ctrl_outerloop_kvz;
+        BoundAbs(Fx, Fhmax);
+        BoundAbs(Fy, Fhmax);
+        BoundAbs(Fz, mg);
+
+        HeadingWorldForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
+        roll_cmd += roll_cmd_bias;
+        pitch_cmd += pitch_cmd_bias;
+        if (counter++%20 == 0){
+            LOG_INFO("use_ibvs: %d detection_status: %d pos: %f %f %f pos_sp: %f %f %f F_security: %f %f %f\n",
+                     use_ibvs, get_detection_status(), pxned, pyned, pzned, sp_pos_x, sp_pos_y, sp_h, Fx, Fy, Fz);
+            LOG_INFO("yaw: %f posrobo: %f %f roll_cmd2: %f pitch_cmd2: %f thrust_cmd2: %f\n",
+                     yaw*57.3, pxrobot, pyrobot, roll_cmd, pitch_cmd, thrust_cmd);
+        }
+
     }
     else{
         get_desired_force_ibvs(&Fx, &Fy, &Fz);
         Fx += Fx_bais;
         Fy += Fy_bais;
+        BoundAbs(Fx, Fhmax);
+        BoundAbs(Fy, Fhmax);
+        BoundAbs(Fz, mg);
+        BodyForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
+        pitch_cmd += pitch_cmd_bias;
+        roll_cmd += roll_cmd_bias;
+        if (counter++%21 == 0)
+            LOG_INFO("roll_cmd: %f pitch_cmd: %f thrust_cmd: %f\n",
+                    roll_cmd, pitch_cmd, thrust_cmd);
 //        LOG_INFO("ibvs F: %f %f %f\n", Fx, Fy, Fz);
     }
-    BoundAbs(Fz, mg);
-    BoundAbs(Fx, Fhmax);
-    BoundAbs(Fy, Fhmax);
-    Fz += mg;
-    Bound(Fz, 0, Fvmax);
-//    BoundAbs(Fz, Fvmax);
-    float normF = sqrt(Fx*Fx+Fy*Fy+Fz*Fz);
-    float roll_cmd = asin(Fy/normF);
-    float pitch_cmd = atan2(-Fx, Fz);
+//    Fz += mg;
+//    Bound(thrust_cmd, 0, Fvmax);
     BoundAbs(roll_cmd, maxdeg);
     BoundAbs(pitch_cmd, maxdeg);
-//    if (counter++ %10 == 0){
+//    if (counter++ %12 == 0){
 //        LOG_INFO("pos: %f %f %f dt: %f F: %f %f %f cmd: %f %f\n", pxned, pyned, pzned,
 //                dtime, Fx, Fy, Fz, DegOfRad(roll_cmd), DegOfRad(pitch_cmd));
 //    }
     ctrl.cmd.phi = ANGLE_BFP_OF_REAL(roll_cmd);
     ctrl.cmd.theta = ANGLE_BFP_OF_REAL(pitch_cmd);
     ctrl.cmd.psi = ANGLE_BFP_OF_REAL(sp_yaw);
-    stabilization_cmd[COMMAND_THRUST] = Fz*1000;
+    stabilization_cmd[COMMAND_THRUST] = thrust_cmd*1000;
 //    printf("thrust: %d\n", stabilization_cmd[COMMAND_THRUST]);
     stabilization_attitude_set_rpy_setpoint_i(&(ctrl.cmd));
     stabilization_attitude_run(in_flight);
@@ -281,14 +326,14 @@ bool compute_gt(struct FloatVect3 *n, struct FloatVect3 *vartheta){
 }
 
 void compute_ibvs_F(struct FloatVect3 *imgcoord, struct FloatVect3 *normal, struct FloatVect3 *vartheta,
-        struct FloatVect3 *F, struct FloatVect3 *desiredb){
-    struct FloatVect3 q, b, nu;
+        struct FloatVect3 *F, struct FloatVect3 *desiredb, struct FloatVect3 *b){
+    struct FloatVect3 q, nu;
     FLOAT_VECT3_ZERO(q);
     q.x = 0.;
     q.y = 0.;
     q.z = 0.;
     float c = 0.;
-    const int nb = 4;
+    const int nb = 3;
     for (int i = 0; i < nb; i++){
         float_vect3_normalize(imgcoord+i);
         float ctheta = imgcoord[i].x*normal->x + imgcoord[i].y*normal->y + imgcoord[i].z*normal->z;
@@ -309,20 +354,20 @@ void compute_ibvs_F(struct FloatVect3 *imgcoord, struct FloatVect3 *normal, stru
     c /= nb;
     c -= float_vect3_norm2(&q);
     float beta = sqrt(c);
-    b.x = q.x/beta;
-    b.y = q.y/beta;
-    b.z = q.z/beta;
+    b->x = q.x/beta;
+    b->y = q.y/beta;
+    b->z = q.z/beta;
 
     nu.x = vartheta->x/beta;
     nu.y = vartheta->y/beta;
     nu.z = vartheta->z/beta;
-    F->x = ibvs_h_k0*(b.x - desiredb->x) - ibvs_h_k1*nu.x;
-    F->y = ibvs_h_k0*(b.y - desiredb->y) - ibvs_h_k1*nu.y;
-    F->z = ibvs_v_k0*(b.z - desiredb->z) - ibvs_v_k1*nu.z;
-    F->z = -F->z;
+    F->x = ibvs_hx_k0*(b->x - desiredb->x) - ibvs_hx_k1*nu.x;
+    F->y = ibvs_hy_k0*(b->y - desiredb->y) - ibvs_hy_k1*nu.y;
+    F->z = ibvs_v_k0*(b->z - desiredb->z) - ibvs_v_k1*nu.z;
+//    F->z = -F->z;
     LOG_INFO("beta: %f nu: %f %f %f b: %f %f %f desiredb_ibvs: %f %f %f F_ibvs: %f %f %f\n", beta,
              nu.x, nu.y, nu.z,
-             b.x, b.y, b.z,
+             b->x, b->y, b->z,
              desiredb->x, desiredb->y, desiredb->z,
              F->x, F->y, F->z);
 //    static unsigned int counter = 0;
@@ -403,8 +448,19 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
         struct FloatVect3 normal_gt, vartheta_gt;
         bool gtsuccess = compute_gt(&normal_gt, &vartheta_gt);
         if (gtsuccess){
+            struct FloatRMat *Rmat = stateGetNedToBodyRMat_f();
+            struct FloatVect3 posb, posned, velb, velned;
+            posned.x = stateGetPositionNed_f()->x;
+            posned.y = stateGetPositionNed_f()->y;
+            posned.z = stateGetPositionNed_f()->z;
+            float_rmat_vmult(&posb, Rmat, &posned);
+
+            velned.x = stateGetSpeedNed_f()->x;
+            velned.y = stateGetSpeedNed_f()->y;
+            velned.z = stateGetSpeedNed_f()->z;
+            float_rmat_vmult(&velb, Rmat, &velned);
             set_last_ibvs_update_time(time_now);
-            struct FloatVect3 imgcoord[4], F, imgcoordAvg, desiredb_tag, desiredb;
+            struct FloatVect3 imgcoord[4], F, imgcoordAvg, desiredb_tag, desiredb, b;
             imgcoordAvg.x = imgcoordAvg.y = imgcoordAvg.z = 0.;
             for (int i = 0; i < 4; i++){
                 imgcoord[i].y = (coord[3*i]-jevois_cx)/jevois_fx;
@@ -427,10 +483,10 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
             vartheta.y = ((float)coord[3*5])/precision;
             vartheta.x = -((float)coord[3*5+1])/precision;
             vartheta.z = ((float)coord[3*5+2])/precision;
-
-            desiredb_tag.y = ((float)coord[3*6])/precision;
-            desiredb_tag.x = -((float)coord[3*6+1])/precision;
-            desiredb_tag.z = ((float)coord[3*6+2])/precision;
+            const float desired_scale = 1.;
+            desiredb_tag.y = desired_scale*((float)coord[3*6])/precision;
+            desiredb_tag.x = -desired_scale*((float)coord[3*6+1])/precision;
+            desiredb_tag.z = desired_scale*((float)coord[3*6+2])/precision;
 
             compute_desiredb(&desiredb);
 //            desiredb.x = 0.;
@@ -438,21 +494,53 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
 //            desiredb.z = 5.;
 
 //            if (counter++ %5 == 0)
-            {
-                LOG_INFO("imgcoord: %f %f %f %f %f %f %f %f\n",
-                        imgcoord[0].x, imgcoord[0].y,
-                         imgcoord[1].x, imgcoord[1].y,
-                         imgcoord[2].x, imgcoord[2].y,
-                         imgcoord[3].x, imgcoord[3].y);
-                LOG_INFO("n_gt: %f %f %f n_est: %f %f %f\n",
-                        normal_gt.x, normal_gt.y, normal_gt.z, normal.x, normal.y, normal.z);
-                LOG_INFO("vartheta_gt: %f %f %f vartheta_est: %f %f %f\n",
-                        vartheta_gt.x, vartheta_gt.y, vartheta_gt.z, vartheta.x, vartheta.y, vartheta.z);
-                LOG_INFO("desiredb: %f %f %f desiredb_tag: %f %f %f\n",
-                        desiredb.x, desiredb.y, desiredb.z, desiredb_tag.x, desiredb_tag.y, desiredb_tag.z);
+
+            LOG_INFO("imgcoord: %f %f %f %f %f %f %f %f\n",
+                     imgcoord[0].x, imgcoord[0].y,
+                     imgcoord[1].x, imgcoord[1].y,
+                     imgcoord[2].x, imgcoord[2].y,
+                     imgcoord[3].x, imgcoord[3].y);
+            LOG_INFO("n_gt: %f %f %f n_est: %f %f %f\n",
+                    normal_gt.x, normal_gt.y, normal_gt.z, normal.x, normal.y, normal.z);
+            LOG_INFO("vartheta_gt: %f %f %f vartheta_est: %f %f %f\n",
+                    vartheta_gt.x, vartheta_gt.y, vartheta_gt.z, vartheta.x, vartheta.y, vartheta.z);
+            LOG_INFO("desiredb: %f %f %f desiredb_tag: %f %f %f\n",
+                    desiredb.x, desiredb.y, desiredb.z, desiredb_tag.x, desiredb_tag.y, desiredb_tag.z);
+            LOG_INFO("posned: %f %f %f velned: %f %f %f\n", posb.x, posb.y, posb.z, velb.x, velb.y, velb.z);
 //                LOG_INFO("imgcoordAvg: %f %f %f desiredb: %f %f %f\n", imgcoordAvg.x, imgcoordAvg.y, imgcoordAvg.z, desiredb.x, desiredb.y, desiredb.z);
-            }
-            compute_ibvs_F(imgcoord, &normal, &vartheta, &F, &desiredb_tag);
+
+            fprintf(fpibvs_out, "%f %f %f %f %f %f %f %f %f", time_now,
+                    -jevois_fy*imgcoord[0].x + jevois_cy, jevois_fx*imgcoord[0].y + jevois_cx,
+                    -jevois_fy*imgcoord[1].x + jevois_cy, jevois_fx*imgcoord[1].y + jevois_cx,
+                    -jevois_fy*imgcoord[2].x + jevois_cy, jevois_fx*imgcoord[2].y + jevois_cx,
+                    -jevois_fy*imgcoord[3].x + jevois_cy, jevois_fx*imgcoord[3].y + jevois_cx);
+
+//            fprintf(fpibvs_out, "%f %f %f %f %f %f %f %f %f", time_now,
+//                    imgcoord[0].x, imgcoord[0].y,
+//                    imgcoord[1].x, imgcoord[1].y,
+//                    imgcoord[2].x, imgcoord[2].y,
+//                    imgcoord[3].x, imgcoord[3].y);
+//            compute_ibvs_F(imgcoord, &normal, &vartheta,
+//                    &F, &desiredb, &b);
+            compute_ibvs_F(imgcoord, &normal, &vartheta,
+                           &F, &desiredb_tag, &b);
+//            compute_ibvs_F(imgcoord, &normal_gt, &vartheta_gt,
+//                           &F, &desiredb, &b);
+
+            fprintf(fpibvs_out, " %f %f %f %f %f %f",
+                    normal_gt.x, normal_gt.y, normal_gt.z, normal.x, normal.y, normal.z);
+
+            fprintf(fpibvs_out, " %f %f %f %f %f %f",
+                    vartheta_gt.x, vartheta_gt.y, vartheta_gt.z, vartheta.x, vartheta.y, vartheta.z);
+
+            fprintf(fpibvs_out, " %f %f %f %f %f %f",
+                    desiredb_tag.x, desiredb_tag.y, desiredb_tag.z,
+                    b.x, b.y, b.z);
+
+            fprintf(fpibvs_out, " %f %f %f %f %f %f\n",
+                    posb.x, posb.y, posb.z,
+                    F.x, F.y, F.z);
+
 //            compute_ibvs_F(imgcoord, &normal_gt, &vartheta_gt, &F, &desiredb);
             nodetection_count = 0;
             set_detection_status(true);
@@ -470,6 +558,24 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
     }else if(type == 20){
         LOG_INFO("no detections\n");
     }
+}
+
+
+void HeadingWorldForce2Att(float Fx, float Fy, float Fz,
+                        float *roll, float *pitch,
+                        float *U){
+    float a = mg - Fz;
+    *U = sqrt(a*a + Fx*Fx + Fy*Fy);
+    *roll = asin(Fy/(*U));
+    *pitch = asin(-Fx/((*U)*cos(*roll)));
+}
+
+void BodyForce2Att(float Fx, float Fy, float Fz,
+        float *roll, float *pitch,
+        float *U){
+    *pitch = asin(-Fx/mg);
+    *roll = asin(Fy/(mg*cos(*pitch)));
+    *U = mg*cos(*roll)*cos(*pitch) - Fz;
 }
 
 bool checkftdi(){
