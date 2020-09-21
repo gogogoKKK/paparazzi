@@ -58,12 +58,14 @@ autopilot_static_set_mode(AP_MODE_MODULE);
       <attitude pitch="0" roll="0" throttle="0" until="FALSE" vmode="throttle"/>
     </block>
 <!--    <block name="Takeoff" strip_button="Takeoff" strip_icon="takeoff.png">-->
-<!--      <exception cond="stateGetPositionEnu_f()->z > 0.5" deroute="Standby"/>-->
-<!--      <call_once fun="NavSetWaypointHere(WP_CLIMB)"/>-->
-<!--      <stay climb="nav_climb_vspeed" vmode="climb" wp="CLIMB"/>-->
+<!--        <set var="nav_heading" value="270"/>-->
+<!--        <go wp="HOME" alt="0.4" />-->
+<!--        <deroute block="Standby"/>-->
 <!--    </block>-->
     <block name="Standby" strip_button="Standby" strip_icon="home.png">
-      <stay wp="HOME" alt="0.4" />
+<!--      <heading course="-90" throttle="0" until="FALSE" vmode="throttle"/>-->
+<!--    <call_once fun="nav_set_heading_deg(-90)"/>-->
+      <stay wp="HOME" alt="0.8" />
     </block>
     <block key="g" name="START">
       <call_once fun="setModule()"/>
