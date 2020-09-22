@@ -30,7 +30,7 @@
 #include "generated/airframe.h"
 float sp_pos_z = 0.4f;
 float sp_vel_z = 0.f;
-int trajectory_vguided_mode = 0;
+int trajectory_vguided_mode = 2;
 #define MAX_NZ 20
 float rand_sp_pos_z[MAX_NZ], rand_sp_zpos_t[MAX_NZ];
 
