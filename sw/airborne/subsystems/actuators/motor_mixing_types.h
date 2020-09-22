@@ -75,6 +75,11 @@
 #define MOTOR_MIXING_YAW_COEF    { -MOTOR_YAW_SIGN*128,  MOTOR_YAW_SIGN*128, -MOTOR_YAW_SIGN*128,  MOTOR_YAW_SIGN*128 }
 #define MOTOR_MIXING_THRUST_COEF {  256,  256,  256,  256 }
 
+//#define MOTOR_MIXING_ROLL_COEF   { 179, -212, -112, 205}
+//#define MOTOR_MIXING_PITCH_COEF  {  162,  191, -136, -247 }
+//#define MOTOR_MIXING_YAW_COEF    { 120, -142,   75, -137 }
+//#define MOTOR_MIXING_THRUST_COEF {  240,  284, 151,  274 }
+
 #elif  MOTOR_MIXING_TYPE == HEXA_X
 /*
  * Hexarotor in time cross (X) configuration with motor order:
