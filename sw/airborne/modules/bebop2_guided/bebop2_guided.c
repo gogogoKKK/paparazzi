@@ -28,6 +28,11 @@
 #include "generated/airframe.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "subsystems/actuators/motor_mixing.h"
+#ifndef GUIDED_SAVE_LOG_PATH
+#define GUIDED_SAVE_LOG_PATH /data/video/images
+#endif
+
 double timestart = -1.;
 enum navigation_state_t {
     LINE_X,
@@ -37,10 +42,26 @@ enum navigation_state_t {
 };
 
 const float twopi = 2.*3.1415926;
-int trajectory_guided_mode = 0;
+int trajectory_guided_mode = 4;
 float sp_pos_x = 0., sp_pos_y = 0., sp_vel_x = 0., sp_vel_y = 0.;
 #define MAX_N 50
 float rand_sp_pos_x[MAX_N], rand_sp_pos_y[MAX_N], rand_sp_pos_t[MAX_N];
+FILE *fplog = NULL;
+bool bsave_iden = true;
+
+void create_log_file(){
+    struct timeval tv;
+    struct tm *tm;
+    gettimeofday(&tv, NULL);
+    tm = localtime(&tv.tv_sec);
+    char buf[256];
+    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d_iden.txt",
+            STRINGIFY(GUIDED_SAVE_LOG_PATH), tm->tm_year + 1900,
+            tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    fplog = fopen(buf, "w");
+}
+
 void bebop2_guided_init(void) {
     time_t t;
     srand((unsigned) time(&t));
@@ -58,6 +79,8 @@ void bebop2_guided_init(void) {
         float s = sqrt(dx*dx+dy*dy);
         rand_sp_pos_t[i+1] = rand_sp_pos_t[i]+s/sp_v;
     }
+    if (bsave_iden)
+        create_log_file();
 }
 
 
@@ -104,6 +127,7 @@ void bebop2_guided_periodic(void){
     }else if (trajectory_guided_mode == 1){
         sp_pos_y = A*sin(twopi*freq*dt);
         sp_pos_x = 0.;
+        sp_pos_x = 0.;
         sp_vel_y = A*twopi*freq*cos(twopi*freq*dt);
         sp_vel_x = 0.;
     }else if (trajectory_guided_mode == 2){
@@ -128,7 +152,7 @@ void bebop2_guided_periodic(void){
         sp_vel_y = 0.;
         sp_vel_x = 0.;
     }else{
-        sp_pos_y = 0.5;
+        sp_pos_y = 0.;
         sp_pos_x = 0.;
         sp_vel_y = 0.;
         sp_vel_x = 0.;
@@ -136,8 +160,32 @@ void bebop2_guided_periodic(void){
 //    printf("guided %d %d %f dt: %f pos: %f vel: %f\n", now.tv_sec, now.tv_usec, time_now, dt, pos, vel);
 
     guidance_h_set_guided_pos(sp_pos_x, sp_pos_y);
+    float heading = -RadOfDeg(90);
+    guidance_h_set_guided_heading(heading);
 //    guidance_h_set_guided_vel(sp_vel_x, sp_vel_y);
+    if (bsave_iden){
+        struct FloatRates * gyro = stateGetBodyRates_f();
 
+        float pxned = stateGetPositionNed_f()->x;
+        float pyned = stateGetPositionNed_f()->y;
+        float pzned = stateGetPositionNed_f()->z;
+
+        struct FloatRMat *Rmat = stateGetNedToBodyRMat_f();
+        float velnedx = stateGetSpeedNed_f()->x;
+        float velnedy = stateGetSpeedNed_f()->y;
+        float velnedz = stateGetSpeedNed_f()->z;
+        struct NedCoor_f *accel = stateGetAccelNed_f();
+        fprintf(fplog, "%f %f %f %f", time_now, pxned, pyned, pzned);
+        fprintf(fplog, " %f %f %f", velnedx, velnedy, velnedz);
+        fprintf(fplog, " %f %f %f", accel->x, accel->y, accel->z);
+        fprintf(fplog, " %f %f %f %f %f %f %f %f %f",
+                Rmat->m[0], Rmat->m[1], Rmat->m[2],
+                Rmat->m[3], Rmat->m[4], Rmat->m[5],
+                Rmat->m[6], Rmat->m[7], Rmat->m[8]);
+        fprintf(fplog, " %d %d %d %d\n",
+                motor_mixing.commands[0], motor_mixing.commands[1],
+                motor_mixing.commands[2], motor_mixing.commands[3]);
+    }
 
 
 }
