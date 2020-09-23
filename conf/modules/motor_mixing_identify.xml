@@ -1,0 +1,28 @@
+<!DOCTYPE module SYSTEM "module.dtd">
+
+<module name="motor_mixing_identify">
+  <doc>
+    <description></description>
+  </doc>
+
+  <settings>
+    <dl_settings>
+      <dl_settings name="motor_identify">
+        <dl_setting var="motor_TL_ud" min="3000" step="1000" max="10000" shortname="TL" module="motor_mixing_identify/motor_mixing_identify"/>
+        <dl_setting var="motor_TR_ud" min="3000" step="1000" max="10000" shortname="TR" module="motor_mixing_identify/motor_mixing_identify"/>
+        <dl_setting var="motor_BR_ud" min="3000" step="1000" max="10000" shortname="TR" module="motor_mixing_identify/motor_mixing_identify"/>
+        <dl_setting var="motor_BL_ud" min="3000" step="1000" max="10000" shortname="TR" module="motor_mixing_identify/motor_mixing_identify"/>
+      </dl_settings>
+    </dl_settings>
+  </settings>
+
+  <header>
+    <file name="motor_mixing_identify.h"/>
+  </header>
+  <init fun="motor_identify_init()"/>
+  <periodic fun="motor_identify_periodic()" freq="50"/>
+  <makefile>
+    <file name="motor_mixing_identify.c"/>
+  </makefile>
+</module>
+
