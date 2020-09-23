@@ -199,20 +199,20 @@
     <!-- feedback -->
     <define name="PHI_PGAIN" value="2000"/>
     <define name="PHI_DGAIN" value="400"/>
-    <define name="PHI_IGAIN" value="0"/>
+    <define name="PHI_IGAIN" value="80"/>
 
     <define name="THETA_PGAIN" value="3000"/>
     <define name="THETA_DGAIN" value="600"/>
-    <define name="THETA_IGAIN" value="0"/>
+    <define name="THETA_IGAIN" value="100"/>
 
     <define name="PSI_PGAIN" value="8000"/>
     <define name="PSI_DGAIN" value="700"/>
-    <define name="PSI_IGAIN" value="0"/>
+    <define name="PSI_IGAIN" value="100"/>
 
     <!-- feedforward -->
-    <define name="PHI_DDGAIN" value="0"/>
-    <define name="THETA_DDGAIN" value="0"/>
-    <define name="PSI_DDGAIN" value="0"/>
+    <define name="PHI_DDGAIN" value="10"/>
+    <define name="THETA_DDGAIN" value="10"/>
+    <define name="PSI_DDGAIN" value="10"/>
   </section>
 
 <!--  <section name="ATTITUDE_REFERENCE" prefix="STABILIZATION_ATTITUDE_">-->
