@@ -22,6 +22,7 @@
       <define name="AHRS_HEADING_UPDATE_GPS_MIN_SPEED" value="0"/>
     </module>
     <module name="ins" type="hff_extended"/>
+
     <!-- Disable use of GPS: -->
     <!--    <define name="INS_INT_GPS_ID" value="ABI_DISABLE"/>
     </module> -->
@@ -34,14 +35,17 @@
       <define name="FILE_LOGGER_PATH" value="/data/ftp/internal_000"/>
     </module>
 
-    <module name="bebop_cam"/>
-    <module name="bebop2_guided"/>
+<!--    <module name="bebop_cam"/>-->
+    <module name="bebop2_guided">
+      <define name="GUIDED_SAVE_LOG_PATH" value="/data/ftp/internal_000/log" />
+    </module>
     <module name="bebop2_v_guided"/>
     <module name="jevois">
       <define name="JEVOIS_SEND_MSG" value="TRUE" />
       <configure name="JEVOIS_UART" value="UART2" />
       <configure name="JEVOIS_BAUD" value="B115200" />
     </module>
+    <module name="motor_mixing_identify"/>
 <!--    <module name="pose_history"/>-->
 
 <!--    <module name="cv_opticflow">-->
@@ -56,16 +60,18 @@
 <!--      &lt;!&ndash; <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/> &ndash;&gt;-->
 <!--      <define name="VIDEO_CAPTURE_PATH" value="/data/ftp/internal_000/images"/>-->
 <!--    </module>-->
-    <module name="save_imu">
-    <define name="IMU_SAVE_PATH" value="/data/ftp/internal_000/imu_images"/>
-<!--    <define name="VIDEO_CAPTURE_CAMERA" value="bottom_camera"/>-->
-     <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/>
-     <define name="MT9F002_OUTPUT_HEIGHT" value="480"/>
-      <define name="MT9F002_OUTPUT_WIDTH" value="640"/>
-<!--      <define name="MT9F002_TARGET_EXPOSURE" value="20"/>-->
-      <define name="MT9F002_TARGET_FPS" value="30"/>
-<!--      <define name="VIDEO_CAPTURE_FPS" value="50"/>-->
-    </module>
+
+<!--    <module name="save_imu">-->
+<!--    <define name="IMU_SAVE_PATH" value="/data/ftp/internal_000/imu_images"/>-->
+<!--&lt;!&ndash;    <define name="VIDEO_CAPTURE_CAMERA" value="bottom_camera"/>&ndash;&gt;-->
+<!--     <define name="VIDEO_CAPTURE_CAMERA" value="front_camera"/>-->
+<!--     <define name="MT9F002_OUTPUT_HEIGHT" value="480"/>-->
+<!--      <define name="MT9F002_OUTPUT_WIDTH" value="640"/>-->
+<!--&lt;!&ndash;      <define name="MT9F002_TARGET_EXPOSURE" value="20"/>&ndash;&gt;-->
+<!--      <define name="MT9F002_TARGET_FPS" value="30"/>-->
+<!--&lt;!&ndash;      <define name="VIDEO_CAPTURE_FPS" value="50"/>&ndash;&gt;-->
+<!--    </module>-->
+
     <module name="ctrl_module_outerloop_demo.xml"/>
 <!--    <module name="save_imu.xml"/>-->
 <!--    <module name="optical_flow_landing.xml"/>-->
@@ -100,6 +106,17 @@
   </section>
 
   <command_laws>
+<!--    <set servo="TOP_LEFT" value="motor_TL_ud"/>-->
+<!--    <set servo="TOP_RIGHT" value="motor_TL_ud"/>-->
+<!--    <set servo="BOTTOM_RIGHT" value="motor_TL_ud"/>-->
+<!--    &lt;!&ndash;    <set servo="BOTTOM_RIGHT" value="0"/>&ndash;&gt;-->
+<!--    <set servo="BOTTOM_LEFT" value="motor_TL_ud"/>-->
+
+<!--    <set servo="TOP_LEFT" value="6000"/>-->
+<!--    <set servo="TOP_RIGHT" value="6000"/>-->
+<!--    <set servo="BOTTOM_RIGHT" value="6000"/>-->
+<!--&lt;!&ndash;    <set servo="BOTTOM_RIGHT" value="0"/>&ndash;&gt;-->
+<!--    <set servo="BOTTOM_LEFT" value="6000"/>-->
     <call fun="motor_mixing_run(autopilot_get_motors_on(),FALSE,values)"/>
     <set servo="TOP_LEFT" value="motor_mixing.commands[MOTOR_FRONT_LEFT]"/>
     <set servo="TOP_RIGHT" value="motor_mixing.commands[MOTOR_FRONT_RIGHT]"/>
@@ -185,15 +202,15 @@
     <!-- feedback -->
     <define name="PHI_PGAIN" value="1500"/>
     <define name="PHI_DGAIN" value="300"/>
-    <define name="PHI_IGAIN" value="0"/>
+    <define name="PHI_IGAIN" value="100"/>
 
-    <define name="THETA_PGAIN" value="1500"/>
-    <define name="THETA_DGAIN" value="300"/>
-    <define name="THETA_IGAIN" value="0"/>
+    <define name="THETA_PGAIN" value="2000"/>
+    <define name="THETA_DGAIN" value="400"/>
+    <define name="THETA_IGAIN" value="100"/>
 
     <define name="PSI_PGAIN" value="8000"/>
     <define name="PSI_DGAIN" value="700"/>
-    <define name="PSI_IGAIN" value="0"/>
+    <define name="PSI_IGAIN" value="200"/>
 
     <!-- feedforward -->
     <define name="PHI_DDGAIN" value="0"/>

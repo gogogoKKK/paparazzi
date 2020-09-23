@@ -2,7 +2,6 @@
 
 <module name="bebop2_guided">
   <doc>
-    +
     <description>guided mode for bebop2</description>
   </doc>
   <settings>
