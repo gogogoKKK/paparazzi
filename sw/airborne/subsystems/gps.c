@@ -128,6 +128,7 @@ static void send_gps(struct transport_tx *trans, struct link_device *dev)
   int16_t climb = -gps.ned_vel.z;
   int16_t course = (DegOfRad(gps.course) / ((int32_t)1e6));
   struct UtmCoor_i utm = utm_int_from_gps(&gps, 0);
+
 #if PPRZLINK_DEFAULT_VER == 2 && GPS_POS_BROADCAST
   // broadcast GPS message
   struct pprzlink_msg msg;

@@ -20,6 +20,9 @@
       <configure name="USE_MAGNETOMETER" value="FALSE"/>
       <define name="AHRS_USE_GPS_HEADING" value="TRUE"/>
       <define name="AHRS_HEADING_UPDATE_GPS_MIN_SPEED" value="0"/>
+      <define name="IMU_ACCEL_X_NEUTRAL" value="50"/>
+      <define name="IMU_ACCEL_Y_NEUTRAL" value="50"/>
+      <define name="IMU_ACCEL_Z_NEUTRAL" value="110"/>
     </module>
     <module name="ins" type="hff_extended"/>
 
@@ -87,7 +90,7 @@
     <axis name="PITCH" failsafe_value="0"/>
     <axis name="ROLL" failsafe_value="0"/>
     <axis name="YAW" failsafe_value="0"/>
-    <axis name="THRUST" failsafe_value="6000"/>
+    <axis name="THRUST" failsafe_value="4000"/>
   </commands>
 
   <servos driver="Default">
@@ -99,8 +102,8 @@
 
   <section name="MIXING" prefix="MOTOR_MIXING_">
     <define name="TRIM_ROLL" value="0"/>
-    <define name="TRIM_PITCH" value="0"/>
-    <define name="TRIM_YAW" value="0"/>
+    <define name="TRIM_PITCH" value="00"/>
+    <define name="TRIM_YAW" value="00"/>
     <define name="REVERSE" value="TRUE"/>
     <define name="TYPE" value="QUAD_X"/>
   </section>
@@ -160,7 +163,6 @@
     <define name="SONAR_MIN_RANGE" value="0.0"/>
     <define name="SONAR_MAX_RANGE" value="2.2"/>
     <define name="SONAR_UPDATE_ON_AGL" value="FALSE"/>
-
   </section>
 
 
@@ -171,7 +173,7 @@
     <define name="SP_MAX_R" value="300" unit="deg/s"/>
     <define name="DEADBAND_A" value="0"/>
     <define name="DEADBAND_E" value="0"/>
-    <define name="DEADBAND_R" value="50"/>
+    <define name="DEADBAND_R" value="0"/>
   </section>
 
   <section name="STABILIZATION_ATTITUDE" prefix="STABILIZATION_ATTITUDE_">
@@ -181,7 +183,7 @@
     <define name="SP_MAX_R" value="300" unit="deg/s"/>
     <define name="DEADBAND_A" value="0"/>
     <define name="DEADBAND_E" value="0"/>
-    <define name="DEADBAND_R" value="50"/>
+    <define name="DEADBAND_R" value="1000"/>
 
     <!-- reference -->
     <define name="REF_OMEGA_P" value="450" unit="deg/s"/>
@@ -202,15 +204,15 @@
     <!-- feedback -->
     <define name="PHI_PGAIN" value="1500"/>
     <define name="PHI_DGAIN" value="300"/>
-    <define name="PHI_IGAIN" value="100"/>
+    <define name="PHI_IGAIN" value="0"/>
 
     <define name="THETA_PGAIN" value="2000"/>
     <define name="THETA_DGAIN" value="400"/>
-    <define name="THETA_IGAIN" value="100"/>
+    <define name="THETA_IGAIN" value="0"/>
 
     <define name="PSI_PGAIN" value="8000"/>
-    <define name="PSI_DGAIN" value="700"/>
-    <define name="PSI_IGAIN" value="200"/>
+    <define name="PSI_DGAIN" value="400"/>
+    <define name="PSI_IGAIN" value="0"/>
 
     <!-- feedforward -->
     <define name="PHI_DDGAIN" value="0"/>
