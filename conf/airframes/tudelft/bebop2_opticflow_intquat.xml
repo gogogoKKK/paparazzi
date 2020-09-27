@@ -18,6 +18,7 @@
     <module name="stabilization" type="int_quat"/>
     <module name="ahrs" type="int_cmpl_quat">
       <configure name="USE_MAGNETOMETER" value="FALSE"/>
+      <define name="AHRS_PROPAGATE_LOW_PASS_RATES" value="TRUE"/>
       <define name="AHRS_USE_GPS_HEADING" value="TRUE"/>
       <define name="AHRS_HEADING_UPDATE_GPS_MIN_SPEED" value="0"/>
       <define name="IMU_ACCEL_X_NEUTRAL" value="50"/>
@@ -115,11 +116,11 @@
 <!--    &lt;!&ndash;    <set servo="BOTTOM_RIGHT" value="0"/>&ndash;&gt;-->
 <!--    <set servo="BOTTOM_LEFT" value="motor_TL_ud"/>-->
 
-<!--    <set servo="TOP_LEFT" value="6000"/>-->
-<!--    <set servo="TOP_RIGHT" value="6000"/>-->
-<!--    <set servo="BOTTOM_RIGHT" value="6000"/>-->
+<!--    <set servo="TOP_LEFT" value="4000"/>-->
+<!--    <set servo="TOP_RIGHT" value="4000"/>-->
+<!--    <set servo="BOTTOM_RIGHT" value="4000"/>-->
 <!--&lt;!&ndash;    <set servo="BOTTOM_RIGHT" value="0"/>&ndash;&gt;-->
-<!--    <set servo="BOTTOM_LEFT" value="6000"/>-->
+<!--    <set servo="BOTTOM_LEFT" value = "4000"/>-->
     <call fun="motor_mixing_run(autopilot_get_motors_on(),FALSE,values)"/>
     <set servo="TOP_LEFT" value="motor_mixing.commands[MOTOR_FRONT_LEFT]"/>
     <set servo="TOP_RIGHT" value="motor_mixing.commands[MOTOR_FRONT_RIGHT]"/>
@@ -183,7 +184,7 @@
     <define name="SP_MAX_R" value="300" unit="deg/s"/>
     <define name="DEADBAND_A" value="0"/>
     <define name="DEADBAND_E" value="0"/>
-    <define name="DEADBAND_R" value="1000"/>
+    <define name="DEADBAND_R" value="50"/>
 
     <!-- reference -->
     <define name="REF_OMEGA_P" value="450" unit="deg/s"/>
