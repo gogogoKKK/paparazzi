@@ -82,6 +82,15 @@ void jevois_update_date(){
 //    fplog = fopen(buf, "w");
 }
 
+void bebop2_guided_jevois_status(bool activate){
+    if (activate){
+        jevois_update_date();
+        jevois_send_string("start\n");
+    }else{
+        jevois_send_string("stop\n");
+    }
+}
+
 
 double findMod(double a, double b)
 {
@@ -106,20 +115,6 @@ double findMod(double a, double b)
 void bebop2_guided_periodic(void){
     if (guidance_h.mode != GUIDANCE_H_MODE_GUIDED) {
         return;
-    }
-    if (jevois_start_status == 0){
-        if (jevois_send_stop){
-            jevois_send_string("stop\n");
-            jevois_send_stop = false;
-        }
-        jevois_send_start = true;
-    }else{
-        if (jevois_send_start){
-            jevois_update_date();
-            jevois_send_string("start\n");
-            jevois_send_start = false;
-        }
-        jevois_send_stop = true;
     }
 
     struct timeval now;
@@ -173,6 +168,7 @@ void bebop2_guided_periodic(void){
 //    printf("guided %d %d %f dt: %f pos: %f vel: %f\n", now.tv_sec, now.tv_usec, time_now, dt, pos, vel);
 
     guidance_h_set_guided_pos(sp_pos_x, sp_pos_y);
+    guidance_h_set_guided_heading(-90/57.3);
 //    guidance_h_set_guided_vel(sp_vel_x, sp_vel_y);
 
 

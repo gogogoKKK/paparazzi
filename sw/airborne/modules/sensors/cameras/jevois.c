@@ -32,7 +32,8 @@
 #include "subsystems/datalink/downlink.h"
 #include <string.h>
 #include <stdio.h>
-
+#include <time.h>
+#include <stdio.h>
 int jevois_mapping_setting;
 bool jevois_stream_setting;
 
@@ -178,11 +179,14 @@ static void jevois_parse(struct jevois_t *jv, char c)
         jv->state = JV_TYPE;
         jv->idx = 0;
         jv->n = 0;
+//          struct timeval now;
+//          gettimeofday(&now, NULL);
+//          double time_now = (double)now.tv_sec + (double)now.tv_usec*1e-6;
+//          printf("time now: %f\n", time_now);
       }
       break;
     case JV_TYPE:
       jv->buf[jv->idx++] = c; // fill buffer
-//      printf("%c\n", c);
       // parse type
       if (jv->idx > 2) { // msg type + white space
         if (jv->buf[0] == 'T' && jv->buf[1] == '1') {
@@ -285,28 +289,29 @@ static void jevois_parse(struct jevois_t *jv, char c)
           // got all coordinates, go to next state
           jv->n = 0; // reset number of received elements
           jv->idx = 0; // reset index
-          switch (jv->msg.type) {
-            case JEVOIS_MSG_T1:
-            case JEVOIS_MSG_T2:
-            case JEVOIS_MSG_T3:
-              jv->state = JV_SEND_MSG;
-              break;
-            case JEVOIS_MSG_N1:
-            case JEVOIS_MSG_N2:
-            case JEVOIS_MSG_N3:
-            case JEVOIS_MSG_D3:
-              jv->state = JV_DIM;
-              break;
-            case JEVOIS_MSG_D1:
-            case JEVOIS_MSG_D2:
-            case JEVOIS_MSG_F2:
-            case JEVOIS_MSG_F3:
-              jv->state = JV_EXTRA;
-              break;
-            default:
-              jv->state = JV_SYNC; // error
-              break;
-          }
+          jv->state = JV_SEND_MSG;
+//          switch (jv->msg.type) {
+//            case JEVOIS_MSG_T1:
+//            case JEVOIS_MSG_T2:
+//            case JEVOIS_MSG_T3:
+//              jv->state = JV_SEND_MSG;
+//              break;
+//            case JEVOIS_MSG_N1:
+//            case JEVOIS_MSG_N2:
+//            case JEVOIS_MSG_N3:
+//            case JEVOIS_MSG_D3:
+//              jv->state = JV_DIM;
+//              break;
+//            case JEVOIS_MSG_D1:
+//            case JEVOIS_MSG_D2:
+//            case JEVOIS_MSG_F2:
+//            case JEVOIS_MSG_F3:
+//              jv->state = JV_EXTRA;
+//              break;
+//            default:
+//              jv->state = JV_SYNC; // error
+//              break;
+//          }
         }
         jv->idx = 0; // reset index
       }

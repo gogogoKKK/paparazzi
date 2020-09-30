@@ -10,8 +10,8 @@
         <dl_setting var="trajectory_guided_mode" min="0" step="1" max="4" shortname="trajectory"
                     module="bebop2_guided/bebop2_guided">
         </dl_setting>
-        <dl_setting var="jevois_start_status" min="0" step="1" max="1"
-                    module="bebop2_guided/bebop2_guided" shortname="jevois_status"/>
+        <dl_setting var="jevois_start_status" min="0" step="1" max="1" module="bebop2_guided/bebop2_guided"
+                    shortname="jevois_status" handler="jevois_status" values="FALSE|TRUE"/>
       </dl_settings>
     </dl_settings>
   </settings>
