@@ -20,7 +20,14 @@
     <module name="ahrs" type="int_cmpl_quat">
       <configure name="USE_MAGNETOMETER" value="FALSE"/>
       <define name="AHRS_USE_GPS_HEADING" value="TRUE"/>
+      <define name="AHRS_PROPAGATE_LOW_PASS_RATES" value="TRUE"/>
       <define name="AHRS_HEADING_UPDATE_GPS_MIN_SPEED" value="0"/>
+      <define name="ACCEL_X_NEUTRAL" value="40"/>
+      <define name="ACCEL_Y_NEUTRAL" value="-7"/>
+      <define name="ACCEL_Z_NEUTRAL" value="140"/>
+      <define name="ACCEL_X_SENS" value="2.4692052435889424" integer="16"/>
+      <define name="ACCEL_Y_SENS" value="2.4598427925493063" integer="16"/>
+      <define name="ACCEL_Z_SENS" value="2.454489298726149" integer="16"/>
     </module>
     <module name="ins" type="hff_extended"/>
     <!-- Disable use of GPS: -->
@@ -96,11 +103,11 @@
   </servos>
 
   <section name="MIXING" prefix="MOTOR_MIXING_">
-    <define name="TRIM_ROLL" value="80"/>
-    <define name="TRIM_PITCH" value="600"/>
+    <define name="TRIM_ROLL" value="0"/>
+    <define name="TRIM_PITCH" value="0"/>
 <!--    <define name="TRIM_ROLL" value="0"/>-->
 <!--    <define name="TRIM_PITCH" value="0"/>-->
-    <define name="TRIM_YAW" value="-700"/>
+    <define name="TRIM_YAW" value="0"/>
     <define name="REVERSE" value="TRUE"/>
     <define name="TYPE" value="QUAD_X"/>
   </section>
@@ -199,20 +206,20 @@
     <!-- feedback -->
     <define name="PHI_PGAIN" value="2000"/>
     <define name="PHI_DGAIN" value="400"/>
-    <define name="PHI_IGAIN" value="80"/>
+    <define name="PHI_IGAIN" value="150"/>
 
-    <define name="THETA_PGAIN" value="3000"/>
-    <define name="THETA_DGAIN" value="600"/>
-    <define name="THETA_IGAIN" value="100"/>
+    <define name="THETA_PGAIN" value="3400"/>
+    <define name="THETA_DGAIN" value="800"/>
+    <define name="THETA_IGAIN" value="300"/>
 
     <define name="PSI_PGAIN" value="8000"/>
     <define name="PSI_DGAIN" value="700"/>
-    <define name="PSI_IGAIN" value="100"/>
+    <define name="PSI_IGAIN" value="300"/>
 
     <!-- feedforward -->
-    <define name="PHI_DDGAIN" value="10"/>
-    <define name="THETA_DDGAIN" value="10"/>
-    <define name="PSI_DDGAIN" value="10"/>
+    <define name="PHI_DDGAIN" value="0"/>
+    <define name="THETA_DDGAIN" value="0"/>
+    <define name="PSI_DDGAIN" value="0"/>
   </section>
 
 <!--  <section name="ATTITUDE_REFERENCE" prefix="STABILIZATION_ATTITUDE_">-->
@@ -235,10 +242,10 @@
 
 <!--  <section name="STABILIZATION_ATTITUDE_INDI" prefix="STABILIZATION_INDI_">-->
 <!--    &lt;!&ndash; control effectiveness &ndash;&gt;-->
-<!--    <define name="G1_P" value="0.029"/>-->
-<!--    <define name="G1_Q" value="0.029"/>-->
-<!--    <define name="G1_R" value="0.01"/>-->
-<!--    <define name="G2_R" value="0.17"/>-->
+<!--    <define name="G1_P" value="0.015698"/>-->
+<!--    <define name="G1_Q" value="0.022904"/>-->
+<!--    <define name="G1_R" value="0.001444"/>-->
+<!--    <define name="G2_R" value="0.142867"/>-->
 
 <!--    &lt;!&ndash; Here it is assumed that your removed the damping from your bebop2!-->
 <!--         The dampers do not really damp, but cause oscillation. By removing/-->
@@ -249,10 +256,10 @@
 
 <!--    &lt;!&ndash; reference acceleration for attitude control &ndash;&gt;-->
 <!--    <define name="REF_ERR_P" value="600.0"/>-->
-<!--    <define name="REF_ERR_Q" value="2000.0"/>-->
+<!--    <define name="REF_ERR_Q" value="1200.0"/>-->
 <!--    <define name="REF_ERR_R" value="600.0"/>-->
 <!--    <define name="REF_RATE_P" value="28.0"/>-->
-<!--    <define name="REF_RATE_Q" value="100.0"/>-->
+<!--    <define name="REF_RATE_Q" value="60.0"/>-->
 <!--    <define name="REF_RATE_R" value="28.0"/>-->
 
 <!--    &lt;!&ndash; second order filter parameters &ndash;&gt;-->
@@ -273,7 +280,7 @@
     <define name="HOVER_KP" value="430"/>
     <define name="HOVER_KD" value="250"/>
     <define name="HOVER_KI" value="0"/>
-    <define name="NOMINAL_HOVER_THROTTLE" value="0.62"/>
+    <define name="NOMINAL_HOVER_THROTTLE" value="0.67"/>
     <define name="ADAPT_THROTTLE_ENABLED" value="FALSE"/>
 	<!-- old?
     <define name="ADAPT_INITIAL_HOVER_THROTTLE" value="0.55"/> 

@@ -66,13 +66,13 @@ static abi_event jevois_ev;
 float ctrl_outerloop_kp = 2., ctrl_outerloop_kv = 1., ctrl_outerloop_kh = 2., ctrl_outerloop_kvz = 1.;
 FILE *fplog = NULL, *fpibvs_out = NULL;
 struct FloatVect3 desired_force_ibvs;
-float ibvs_hx_k0 = .3, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = 0.2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
+float ibvs_hx_k0 = .25, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = 0.2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
 //float ibvs_hx_k0 = .2, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = .2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
 int jevois_start_status = 0;
 const float hground = -0.1;
-const float mg = 6.07, Fhmax = 2., Fvmax = 9.;
-const float sp_yaw = -RadOfDeg(90.), sp_h = -1.2;
-const float maxdeg = RadOfDeg(10.), pitch_cmd_bias = 0.0, roll_cmd_bias = -0.0;
+const float mg = 6.4, Fhmax = .6, Fvmax = .6;
+const float sp_yaw = -RadOfDeg(90.), sp_h = -1.4;
+const float maxdeg = RadOfDeg(10.);
 const float sp_pos_x = -0.3, sp_pos_y = 0.;
 
 bool jevois_send_start = false, jevois_send_stop = false, jevois_send_date = true;
@@ -224,7 +224,7 @@ void guidance_h_module_run(bool in_flight)
     float roll_cmd = 0.;
     float pitch_cmd = 0.;
     float thrust_cmd = 0.;
-    if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.5 || fabs(pyned) > 0.5){
+    if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.8 || fabs(pyned) > 0.8){
         float vxned = stateGetSpeedNed_f()->x;
         float vyned = stateGetSpeedNed_f()->y;
         float vzned = stateGetSpeedNed_f()->z;
@@ -248,11 +248,9 @@ void guidance_h_module_run(bool in_flight)
         Fz = (sp_h - pzned)*ctrl_outerloop_kh - (vzned)*ctrl_outerloop_kvz;
         BoundAbs(Fx, Fhmax);
         BoundAbs(Fy, Fhmax);
-        BoundAbs(Fz, mg);
+        BoundAbs(Fz, Fvmax);
 
         HeadingWorldForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
-//        roll_cmd += roll_cmd_bias;
-//        pitch_cmd += pitch_cmd_bias;
         if (counter++%20 == 0){
             LOG_INFO("use_ibvs: %d detection_status: %d pos: %f %f %f pos_sp: %f %f %f F_security: %f %f %f\n",
                      use_ibvs, get_detection_status(), pxned, pyned, pzned, sp_pos_x, sp_pos_y, sp_h, Fx, Fy, Fz);
@@ -265,10 +263,8 @@ void guidance_h_module_run(bool in_flight)
         get_desired_force_ibvs(&Fx, &Fy, &Fz);
         BoundAbs(Fx, Fhmax);
         BoundAbs(Fy, Fhmax);
-        BoundAbs(Fz, mg);
+        BoundAbs(Fz, Fvmax);
         BodyForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
-//        pitch_cmd += pitch_cmd_bias;
-//        roll_cmd += roll_cmd_bias;
         if (counter++%21 == 0)
             LOG_INFO("roll_cmd: %f pitch_cmd: %f thrust_cmd: %f\n",
                     roll_cmd, pitch_cmd, thrust_cmd);
@@ -520,6 +516,8 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
 //                    &F, &desiredb, &b);
             compute_ibvs_F(imgcoord, &normal, &vartheta,
                            &F, &desiredb_tag, &b);
+//            compute_ibvs_F(imgcoord, &normal_gt, &vartheta,
+//                           &F, &desiredb_tag, &b);
 //            compute_ibvs_F(imgcoord, &normal_gt, &vartheta_gt,
 //                           &F, &desiredb, &b);
 
