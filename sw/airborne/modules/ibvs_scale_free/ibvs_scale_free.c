@@ -67,11 +67,16 @@ float ctrl_outerloop_kp = 2., ctrl_outerloop_kv = 1., ctrl_outerloop_kh = 2., ct
 FILE *fplog = NULL, *fpibvs_out = NULL;
 struct FloatVect3 desired_force_ibvs;
 float ibvs_hx_k0 = .25, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = 0.2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
+float ibvs_hx_ki = 0.01, ibvs_hy_ki = 0.01, ibvs_v_ki = 0.01;
+float ibvs_sumx_err = 0., ibvs_sumy_err = 0., ibvs_sumz_err = 0.;
+float Fx_bais = -0.2;
+bool use_int = false;
 //float ibvs_hx_k0 = .2, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = .2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
 int jevois_start_status = 0;
+int trajectory_status = 0;
 const float hground = -0.1;
 const float mg = 6.4, Fhmax = .6, Fvmax = .6;
-const float sp_yaw = -RadOfDeg(90.), sp_h = -1.4;
+const float sp_yaw = -RadOfDeg(90.), sp_h = -1.5;
 const float maxdeg = RadOfDeg(10.);
 const float sp_pos_x = -0.3, sp_pos_y = 0.;
 
@@ -118,6 +123,15 @@ void ibvs_scale_free_jevois_status(bool activate){
         jevois_send_string("start\n");
     }else{
         jevois_send_string("stop\n");
+    }
+}
+
+void ibvs_scale_free_trajectory_status(bool activate){
+    trajectory_status = activate;
+    if (activate){
+        jevois_send_string("trajStart\n");
+    }else{
+        jevois_send_string("trajStop\n");
     }
 }
 
@@ -261,6 +275,7 @@ void guidance_h_module_run(bool in_flight)
     }
     else{
         get_desired_force_ibvs(&Fx, &Fy, &Fz);
+        Fx += Fx_bais;
         BoundAbs(Fx, Fhmax);
         BoundAbs(Fy, Fhmax);
         BoundAbs(Fz, Fvmax);
@@ -356,12 +371,25 @@ void compute_ibvs_F(struct FloatVect3 *imgcoord, struct FloatVect3 *normal, stru
     F->x = ibvs_hx_k0*(b->x - desiredb->x) - ibvs_hx_k1*nu.x;
     F->y = ibvs_hy_k0*(b->y - desiredb->y) - ibvs_hy_k1*nu.y;
     F->z = ibvs_v_k0*(b->z - desiredb->z) - ibvs_v_k1*nu.z;
+    ibvs_sumx_err += ibvs_hx_ki*(b->x - desiredb->x);
+    ibvs_sumy_err += ibvs_hy_ki*(b->y - desiredb->y);
+    ibvs_sumz_err += ibvs_v_ki*(b->z - desiredb->z);
+    BoundAbs(ibvs_sumx_err, 0.2);
+    BoundAbs(ibvs_sumy_err, 0.2);
+    BoundAbs(ibvs_sumz_err, 0.2);
+    if (use_int){
+        F->x += ibvs_sumx_err;
+        F->y += ibvs_sumy_err;
+        F->z += ibvs_sumz_err;
+    }
+
 //    F->z = -F->z;
-    LOG_INFO("beta: %f nu: %f %f %f b: %f %f %f desiredb_ibvs: %f %f %f F_ibvs: %f %f %f\n", beta,
+    LOG_INFO("beta: %f nu: %f %f %f b: %f %f %f desiredb_ibvs: %f %f %f F_ibvs: %f %f %f sum_err: %f %f %f\n", beta,
              nu.x, nu.y, nu.z,
              b->x, b->y, b->z,
              desiredb->x, desiredb->y, desiredb->z,
-             F->x, F->y, F->z);
+             F->x, F->y, F->z,
+             ibvs_sumx_err, ibvs_sumy_err, ibvs_sumz_err);
 //    static unsigned int counter = 0;
 //    if (counter++%5 == 0)
     {

@@ -79,7 +79,8 @@
 #define MOTOR_MIXING_ROLL_COEF   {  138, -133, -139,  133 }
 #define MOTOR_MIXING_PITCH_COEF  {  181,  175, -182, -175 }
 #define MOTOR_MIXING_YAW_COEF    { 158,  -153, 160,  -153 }
-#define MOTOR_MIXING_THRUST_COEF {  282,  277,  249,  234 }
+#define MOTOR_MIXING_THRUST_COEF {  282,  277,  249,  234 } // for the moving object
+//#define MOTOR_MIXING_THRUST_COEF {  270,  260,  249,  234 }
 //#define MOTOR_MIXING_THRUST_COEF {  264,  256,  266,  256 }
 ////#define MOTOR_MIXING_THRUST_COEF {  315,  309,  215,  202 } // 0.1 0.075
 //#define MOTOR_MIXING_THRUST_COEF {  313,  294,  217,  218 } // 0.1 0.075
