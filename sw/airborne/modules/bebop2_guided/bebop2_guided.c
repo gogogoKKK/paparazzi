@@ -28,7 +28,13 @@
 #include "generated/airframe.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "subsystems/abi.h"
 #include "modules/sensors/cameras/jevois.h"
+#define LOG_INFO(format, args...) (fprintf(fplog, "[INFO]-[%d]:" format, __LINE__, ##args))
+#ifndef IBVS_LOG_PATH
+#define IBVS_LOG_PATH /data/ftp/internal_000/log
+#endif
+
 double timestart = -1.;
 enum navigation_state_t {
     LINE_X,
@@ -36,6 +42,9 @@ enum navigation_state_t {
     CIRCLE,
     ARBITRARY
 };
+
+static abi_event jevois_ev;
+FILE *fplog = NULL, *fpibvs_out = NULL;
 
 const float twopi = 2.*3.1415926;
 int trajectory_guided_mode = 0;
@@ -45,6 +54,24 @@ int jevois_start_status = 0;
 bool jevois_send_start = false, jevois_send_stop = false;
 #define MAX_N 50
 float rand_sp_pos_x[MAX_N], rand_sp_pos_y[MAX_N], rand_sp_pos_t[MAX_N];
+void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
+                      uint8_t nb, int16_t * coord, uint16_t * dim,
+                      struct FloatQuat quat, char * extra);
+void create_log_file(){
+    struct timeval tv;
+    struct tm *tm;
+    gettimeofday(&tv, NULL);
+    tm = localtime(&tv.tv_sec);
+    char buf[256];
+    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    fplog = fopen(buf, "w");
+
+//    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d_out.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+//            tm->tm_hour, tm->tm_min, tm->tm_sec);
+//    fpibvs_out = fopen(buf, "w");
+}
+
 void bebop2_guided_init(void) {
     time_t t;
     srand((unsigned) time(&t));
@@ -62,6 +89,9 @@ void bebop2_guided_init(void) {
         float s = sqrt(dx*dx+dy*dy);
         rand_sp_pos_t[i+1] = rand_sp_pos_t[i]+s/sp_v;
     }
+
+    AbiBindMsgJEVOIS_MSG(CAM_JEVOIS_ID, &jevois_ev, jevois_msg_event);
+    create_log_file();
 }
 
 void jevois_update_date(){
@@ -73,14 +103,35 @@ void jevois_update_date(){
     sprintf(buf, "date %02d%02d%02d%02d00\n", tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min);
 //    LOG_INFO("%s", buf);
     jevois_send_string(buf);
-//    if (fplog){
-//        fclose(fplog);
-//        fplog = NULL;
-//    }
-//    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-//            tm->tm_hour, tm->tm_min, tm->tm_sec);
-//    fplog = fopen(buf, "w");
+    if (fplog){
+        fclose(fplog);
+        fplog = NULL;
+    }
+    sprintf(buf, "%s/%04d_%02d_%02d_%02d_%02d_%02d.txt", STRINGIFY(IBVS_LOG_PATH), tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    fplog = fopen(buf, "w");
 }
+
+
+void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
+                      uint8_t nb, int16_t * coord, uint16_t * dim,
+                      struct FloatQuat quat, char * extra){
+    if (type == JEVOIS_MSG_F3) {
+        struct FloatVect3 normal, vartheta;
+        const float precision = 1000.f;
+        normal.x = ((float)coord[3*0])/precision;
+        normal.y = ((float)coord[3*0+1])/precision;
+        normal.z = ((float)coord[3*0+2])/precision;
+
+        vartheta.x = ((float)coord[3*1])/precision;
+        vartheta.y = ((float)coord[3*1+1])/precision;
+        vartheta.z = ((float)coord[3*1+2])/precision;
+        LOG_INFO("normal: %f %f %f velocity: %f %f %f\n", normal.x, normal.y, normal.z, vartheta.x, vartheta.y, vartheta.z);
+        }else{
+            LOG_INFO("height too low\n");
+        }
+}
+
 
 void bebop2_guided_jevois_status(bool activate){
     if (activate){
