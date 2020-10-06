@@ -76,9 +76,9 @@ int jevois_start_status = 0;
 int trajectory_status = 0;
 const float hground = -0.1;
 const float mg = 6.4, Fhmax = .6, Fvmax = .6;
-const float sp_yaw = -RadOfDeg(90.), sp_h = -1.5;
+const float sp_yaw = -RadOfDeg(90.), sp_h = -1.4;
 const float maxdeg = RadOfDeg(10.);
-const float sp_pos_x = -0.3, sp_pos_y = 0.;
+const float sp_pos_x = -0.2, sp_pos_y = 0.1;
 
 bool jevois_send_start = false, jevois_send_stop = false, jevois_send_date = true;
 
