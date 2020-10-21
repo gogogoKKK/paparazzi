@@ -15,6 +15,10 @@ inline void setGuided(void){
 autopilot_mode_auto2 = AP_MODE_GUIDED;
 autopilot_static_set_mode(AP_MODE_GUIDED);
 }
+inline void setModule(void){
+autopilot_mode_auto2 = AP_MODE_MODULE;
+autopilot_static_set_mode(AP_MODE_MODULE);
+}
 </header>
   <waypoints>
     <waypoint name="HOME" x="0.4" y="0.0"/>
@@ -61,13 +65,13 @@ autopilot_static_set_mode(AP_MODE_GUIDED);
       <stay wp="HOME" alt="0.4" />
     </block>
     <block key="g" name="START">
-      <call_once fun="setGuided()"/>
+      <call_once fun="setModule()"/>
       <stay wp="GOAL"/>
     </block>
-    <block name="STOP">
-      <call_once fun="setNav()"/>
-      <stay wp="STDBY"/>
-    </block>
+<!--    <block name="STOP">-->
+<!--      <call_once fun="setNav()"/>-->
+<!--      <stay wp="STDBY"/>-->
+<!--    </block>-->
 <!--    <block name="circlehome">-->
 <!--      <circle radius="0.3" wp="HOME"/>-->
 <!--    </block>-->

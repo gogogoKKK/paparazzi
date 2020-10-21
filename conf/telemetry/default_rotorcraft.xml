@@ -40,6 +40,7 @@
       <message name="IMU_GYRO"      period=".1"/>
       <message name="IMU_ACCEL"      period=".1"/>
       <message name="STAB_ATTITUDE_INT"      period=".03"/>
+      <message name="SONAR"      period=".03"/>
     </mode>
 
     <mode name="ppm">

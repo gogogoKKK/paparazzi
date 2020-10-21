@@ -38,7 +38,10 @@ extern float comode_time;
 
 // But re-using an existing altitude-hold controller
 #define GUIDANCE_V_MODE_MODULE_SETTING GUIDANCE_V_MODE_HOVER
-
+extern bool use_jevois_ctrl;
+extern int jevois_start_status;
+extern void ctrl_module_outerloop_demo_jevois_status(bool activate);
+extern void ctrl_module_outerloop_demo_init(void);
 // Implement own Horizontal loops
 extern void guidance_h_module_init(void);
 extern void guidance_h_module_enter(void);
