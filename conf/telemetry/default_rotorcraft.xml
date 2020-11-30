@@ -35,6 +35,7 @@
       <message name="IMU_ACCEL"      period=".05"/>
       <message name="STAB_ATTITUDE_INT"      period=".05"/>
       <message name="MOTOR_MIXING"      period=".05"/>
+      <message name="RC"                       period="0.5"/>
     </mode>
 
     <mode name="ppm">

@@ -30,11 +30,11 @@ The basis of steering is the standard signs of aerospace convention
 
 <joystick>
   <input>
-    <axis index="1" name="roll"/>
-    <axis index="0" name="pitch"/>
-    <axis index="2" name="throttle"/>
-    <axis index="6" name="mode"/>
-    <axis index="4" name="gearpit"/>
+    <axis index="0" name="roll"/>
+    <axis index="2" name="pitch"/>
+    <axis index="1" name="throttle"/>
+    <axis index="4" name="mode"/>
+    <axis index="5" name="gearpit"/>
     <axis index="3" name="yaw"/>
   </input>
 
