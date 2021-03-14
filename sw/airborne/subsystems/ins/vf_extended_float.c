@@ -280,6 +280,7 @@ static void update_biased_z_conf(float z_meas, float conf)
  */
 static void update_alt_conf(float z_meas, float conf)
 {
+//  printf("z_meas: %f\n", z_meas);
   static float K[VFF_STATE_SIZE];
   static float P[VFF_STATE_SIZE];
 

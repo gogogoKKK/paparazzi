@@ -69,21 +69,21 @@ struct FloatVect3 desired_force_ibvs;
 float ibvs_hx_k0 = .25, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = 0.2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
 float ibvs_hx_ki = 0.01, ibvs_hy_ki = 0.01, ibvs_v_ki = 0.01;
 float ibvs_sumx_err = 0., ibvs_sumy_err = 0., ibvs_sumz_err = 0.;
-float Fx_bais = -0.2;
+float Fx_bais = -0.;
 bool use_int = false;
 //float ibvs_hx_k0 = .2, ibvs_hx_k1 = 0.2, ibvs_hy_k0 = .2, ibvs_hy_k1 = 0.2, ibvs_v_k0 = 0.2, ibvs_v_k1 = .2;
 int jevois_start_status = 0;
 int trajectory_status = 0;
 const float hground = -0.1;
-const float mg = 6.4, Fhmax = .6, Fvmax = .6;
-const float sp_yaw = -RadOfDeg(90.), sp_h = -1.4;
+const float mg = 6.35, Fxmax = .6, Fvmax = .6, Fymax = 1.;
+const float sp_yaw = -RadOfDeg(0.), sp_h = -0.9;
 const float maxdeg = RadOfDeg(10.);
-const float sp_pos_x = -0.2, sp_pos_y = 0.1;
+const float sp_pos_x = -0., sp_pos_y = 0.;
 
 bool jevois_send_start = false, jevois_send_stop = false, jevois_send_date = true;
 
 pthread_mutex_t detection_status_mutex, ibvs_force_mutex, last_ibvs_update_time_mutex;
-bool use_ibvs = false;
+bool use_ibvs = true;
 bool detection_status = false;
 void mkdir(char* dir);
 double last_ibvs_update_time = 0.;
@@ -238,46 +238,49 @@ void guidance_h_module_run(bool in_flight)
     float roll_cmd = 0.;
     float pitch_cmd = 0.;
     float thrust_cmd = 0.;
-    if (!use_ibvs || !get_detection_status() || dtime > 0.5 || fabs(pzned) > 1.5 || fabs(pxned) > 0.8 || fabs(pyned) > 0.8){
-        float vxned = stateGetSpeedNed_f()->x;
-        float vyned = stateGetSpeedNed_f()->y;
-        float vzned = stateGetSpeedNed_f()->z;
-
-//        struct FloatRMat *Rmat = stateGetNedToBodyRMat_f();
+    if (!use_ibvs || !get_detection_status() || dtime > 0.5 ){
+//        float vxned = stateGetSpeedNed_f()->x;
+//        float vyned = stateGetSpeedNed_f()->y;
+//        float vzned = stateGetSpeedNed_f()->z;
+//
+////        struct FloatRMat *Rmat = stateGetNedToBodyRMat_f();
         float yaw = stateGetNedToBodyEulers_f()->psi;
-        float cpsi = cos(yaw);
-        float spsi = sin(yaw);
-        float err_pos_x = pxned - sp_pos_x;
-        float err_pos_y = pyned - sp_pos_y;
+//        float cpsi = cos(yaw);
+//        float spsi = sin(yaw);
+//        float err_pos_x = pxned - sp_pos_x;
+//        float err_pos_y = pyned - sp_pos_y;
+//
+//        float pxrobot = cpsi*err_pos_x + spsi*err_pos_y;
+//        float pyrobot = -spsi*err_pos_x + cpsi*err_pos_y;
+//
+//        float vxrobot = cpsi*vxned + spsi*vyned;
+//        float vyrobot = -spsi*vxned + cpsi*vyned;
+////    printf("inflight: %d pos: %f %f %f vel: %f %f %f yaw: %f\n", in_flight, pxned, pyned, pzned, vxned, vyned, vzned, yaw);
+//        Fx = (-pxrobot*ctrl_outerloop_kp - vxrobot*ctrl_outerloop_kv);
+//        Fy = (-pyrobot*ctrl_outerloop_kp - vyrobot*ctrl_outerloop_kv);
+////        Fz = (pzned - sp_h)*ctrl_outerloop_kh + (vzned)*ctrl_outerloop_kvz;
+//        Fz = (sp_h - pzned)*ctrl_outerloop_kh - (vzned)*ctrl_outerloop_kvz;
+//        BoundAbs(Fx, Fhmax);
+//        BoundAbs(Fy, Fhmax);
+//        BoundAbs(Fz, Fvmax);
 
-        float pxrobot = cpsi*err_pos_x + spsi*err_pos_y;
-        float pyrobot = -spsi*err_pos_x + cpsi*err_pos_y;
-
-        float vxrobot = cpsi*vxned + spsi*vyned;
-        float vyrobot = -spsi*vxned + cpsi*vyned;
-//    printf("inflight: %d pos: %f %f %f vel: %f %f %f yaw: %f\n", in_flight, pxned, pyned, pzned, vxned, vyned, vzned, yaw);
-        Fx = (-pxrobot*ctrl_outerloop_kp - vxrobot*ctrl_outerloop_kv);
-        Fy = (-pyrobot*ctrl_outerloop_kp - vyrobot*ctrl_outerloop_kv);
-//        Fz = (pzned - sp_h)*ctrl_outerloop_kh + (vzned)*ctrl_outerloop_kvz;
-        Fz = (sp_h - pzned)*ctrl_outerloop_kh - (vzned)*ctrl_outerloop_kvz;
-        BoundAbs(Fx, Fhmax);
-        BoundAbs(Fy, Fhmax);
-        BoundAbs(Fz, Fvmax);
-
-        HeadingWorldForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
+//        HeadingWorldForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
+        roll_cmd = 0.;
+        pitch_cmd = 0.;
+        thrust_cmd = 5.;
         if (counter++%20 == 0){
-            LOG_INFO("use_ibvs: %d detection_status: %d pos: %f %f %f pos_sp: %f %f %f F_security: %f %f %f\n",
-                     use_ibvs, get_detection_status(), pxned, pyned, pzned, sp_pos_x, sp_pos_y, sp_h, Fx, Fy, Fz);
-            LOG_INFO("yaw: %f posrobo: %f %f roll_cmd2: %f pitch_cmd2: %f thrust_cmd2: %f\n",
-                     yaw*57.3, pxrobot, pyrobot, roll_cmd, pitch_cmd, thrust_cmd);
+            LOG_INFO("use_ibvs: %d detection_status: %d yaw: %f posned: %f %f %f\n",
+                     use_ibvs, get_detection_status(), yaw, pxned, pyned, pzned);
+//            LOG_INFO("yaw: %f posrobo: %f %f roll_cmd2: %f pitch_cmd2: %f thrust_cmd2: %f\n",
+//                     yaw*57.3, pxrobot, pyrobot, roll_cmd, pitch_cmd, thrust_cmd);
         }
-
     }
-    else{
+    else
+    {
         get_desired_force_ibvs(&Fx, &Fy, &Fz);
         Fx += Fx_bais;
-        BoundAbs(Fx, Fhmax);
-        BoundAbs(Fy, Fhmax);
+        BoundAbs(Fx, Fxmax);
+        BoundAbs(Fy, Fymax);
         BoundAbs(Fz, Fvmax);
         BodyForce2Att(Fx, Fy, Fz, &roll_cmd, &pitch_cmd, &thrust_cmd);
         if (counter++%21 == 0)
@@ -561,7 +564,7 @@ void jevois_msg_event(uint8_t sender_id, uint8_t type, char * id,
 
             fprintf(fpibvs_out, " %f %f %f %f %f %f\n",
                     posb.x, posb.y, posb.z,
-                    F.x, F.y, F.z);
+                    velb.x, velb.y, velb.z);
 
 //            compute_ibvs_F(imgcoord, &normal_gt, &vartheta_gt, &F, &desiredb);
             nodetection_count = 0;

@@ -477,9 +477,13 @@ void ins_int_update_gps(struct GpsState *gps_s __attribute__((unused))) {}
  */
 #if USE_VFF_EXTENDED
 static void agl_cb(uint8_t __attribute__((unused)) sender_id, __attribute__((unused)) uint32_t stamp, float distance) {
-  if (distance <= 0 || !(ins_int.baro_initialized)) {
+//    printf("distance: %f %d\n", distance, ins_int.baro_initialized);
+  if (distance <= 0
+//  || !(ins_int.baro_initialized)
+  ) {
     return;
   }
+
 
 #if USE_SONAR
   if (distance > INS_SONAR_MAX_RANGE || distance < INS_SONAR_MIN_RANGE){

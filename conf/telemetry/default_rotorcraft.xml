@@ -36,6 +36,7 @@
       <message name="STAB_ATTITUDE_INT"      period=".05"/>
       <message name="MOTOR_MIXING"      period=".05"/>
       <message name="RC"                       period="0.5"/>
+      <message name="OPTIC_FLOW_EST" period="0.5"/>
     </mode>
 
     <mode name="ppm">
